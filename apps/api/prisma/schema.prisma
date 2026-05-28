@@ -1,0 +1,346 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  CLIENT
+  PROVIDER
+  SUPPORT
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum SessionStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum ServiceCategory {
+  ELECTRICIDAD
+  PLOMERIA
+  LIMPIEZA
+  CARPINTERIA
+  PINTURA
+  JARDINERIA
+  CERRAJERIA
+  AIRE_ACONDICIONADO
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+}
+
+enum ServiceRequestStatus {
+  PENDING
+  NEGOTIATION
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+model User {
+  id                 String               @id @default(cuid())
+  email              String               @unique
+  fullName           String
+  phone              String?
+  documentNumber     String?
+  passwordHash       String
+  role               UserRole             @default(CLIENT)
+  status             UserStatus           @default(ACTIVE)
+  trustScore         Int                  @default(50)
+  slPoints           Int                  @default(0)
+  failedLoginAttempts Int                 @default(0)
+  lockedUntil        DateTime?
+  lastLoginAt        DateTime?
+  avatarUrl          String?
+  bio                String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  sessions           Session[]
+  auditLogs          AuditLog[]           @relation("ActorAuditLogs")
+  serviceRequestsSent     ServiceRequest[] @relation("ServiceRequestClient")
+  serviceRequestsReceived ServiceRequest[] @relation("ServiceRequestProvider")
+  serviceRequestMessages  ServiceRequestMessage[]
+  providerProfile    ProviderProfile?
+  passwordResetTokens PasswordResetToken[]
+  services           Service[]
+  notifications      Notification[]
+  favoriteProviders  FavoriteProvider[]   @relation("UserFavoriteProviders")
+  favoritedByUsers   FavoriteProvider[]   @relation("FavoritedByUsers")
+  favoriteServices   FavoriteService[]
+  trustEvents        TrustEvent[]
+  reviewsWritten     Review[]           @relation("ReviewsWritten")
+  reviewsReceived    Review[]           @relation("ReviewsReceived")
+  reportsFiled       Report[]           @relation("ReportsFiled")
+  reportsReceived    Report[]           @relation("ReportsReceived")
+  reportsReviewed    Report[]           @relation("ReportsReviewed")
+}
+
+model ProviderProfile {
+  id                String          @id @default(cuid())
+  userId            String          @unique
+  ruc               String          @unique
+  businessName      String
+  category          ServiceCategory
+  customServiceName String?
+  specialty         String?
+  experienceYears   Int?            @default(0)
+  availability      String?
+  serviceZone       String
+  description       String
+  isVerified        Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id               String         @id @default(cuid())
+  userId           String
+  refreshTokenHash String         @unique
+  csrfTokenHash    String         @unique
+  rememberMe       Boolean        @default(false)
+  status           SessionStatus  @default(ACTIVE)
+  expiresAt        DateTime
+  lastUsedAt       DateTime?
+  revokedAt        DateTime?
+  revokedReason    String?
+  userAgent        String?
+  ipAddress        String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id                 String   @id @default(cuid())
+  userId             String
+  tokenHash          String   @unique
+  expiresAt          DateTime
+  usedAt             DateTime?
+  requestedFromIp    String?
+  requestedUserAgent String?
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  action      String
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  actorUser User? @relation("ActorAuditLogs", fields: [actorUserId], references: [id], onDelete: SetNull)
+}
+
+model ServiceRequest {
+  id             String               @id @default(cuid())
+  clientUserId   String
+  providerUserId String
+  serviceTitle   String
+  message        String
+  serviceZone    String
+  preferredDate  DateTime?
+  expiresAt      DateTime
+  status         ServiceRequestStatus @default(PENDING)
+  cancelReason   String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  clientUser   User @relation("ServiceRequestClient", fields: [clientUserId], references: [id], onDelete: Cascade)
+  providerUser User @relation("ServiceRequestProvider", fields: [providerUserId], references: [id], onDelete: Cascade)
+  messages     ServiceRequestMessage[]
+  trustEvents  TrustEvent[]
+  review       Review?
+  reports      Report[]
+
+  @@index([clientUserId])
+  @@index([providerUserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ServiceRequestMessage {
+  id           String         @id @default(cuid())
+  requestId    String
+  senderUserId String
+  content      String
+  isRead       Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+
+  request    ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  senderUser User           @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt])
+  @@index([senderUserId])
+}
+
+// ─── New Models ──────────────────────────────────────────────
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  icon        String?
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  services    Service[]
+}
+
+model Service {
+  id              String    @id @default(cuid())
+  providerUserId  String
+  categoryId      String
+  name            String
+  description     String
+  referencePrice  Decimal?
+  estimatedTime   String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  providerUser    User      @relation(fields: [providerUserId], references: [id], onDelete: Cascade)
+  category        Category  @relation(fields: [categoryId], references: [id])
+  favorites       FavoriteService[]
+
+  @@index([providerUserId])
+  @@index([categoryId])
+  @@index([isActive])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+model FavoriteProvider {
+  id          String    @id @default(cuid())
+  userId      String
+  providerId  String
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation("UserFavoriteProviders", fields: [userId], references: [id], onDelete: Cascade)
+  provider    User      @relation("FavoritedByUsers", fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, providerId])
+  @@index([userId])
+}
+
+model FavoriteService {
+  id        String    @id @default(cuid())
+  userId    String
+  serviceId String
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service   Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceId])
+  @@index([userId])
+}
+
+model TrustEvent {
+  id        String    @id @default(cuid())
+  userId    String
+  eventType String
+  points    Int
+  reason    String
+  requestId String?
+  metadata  Json?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  request   ServiceRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Review {
+  id             String   @id @default(cuid())
+  requestId      String   @unique
+  clientUserId   String
+  providerUserId String
+  rating         Int
+  comment        String?
+  createdAt      DateTime @default(now())
+
+  request      ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  clientUser   User           @relation("ReviewsWritten", fields: [clientUserId], references: [id], onDelete: Cascade)
+  providerUser User           @relation("ReviewsReceived", fields: [providerUserId], references: [id], onDelete: Cascade)
+
+  @@index([providerUserId])
+  @@index([clientUserId])
+  @@index([createdAt])
+}
+
+model Report {
+  id             String       @id @default(cuid())
+  reporterUserId String
+  reportedUserId String
+  requestId      String?
+  reason         String
+  description    String?
+  status         ReportStatus @default(PENDING)
+  reviewedByUserId String?
+  reviewedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  reporterUser     User            @relation("ReportsFiled", fields: [reporterUserId], references: [id], onDelete: Cascade)
+  reportedUser     User            @relation("ReportsReceived", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reviewedByUser   User?           @relation("ReportsReviewed", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  request          ServiceRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([reportedUserId])
+  @@index([reporterUserId])
+  @@index([createdAt])
+}
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   @db.Text
+  description String?
+  updatedAt   DateTime @updatedAt
+}
