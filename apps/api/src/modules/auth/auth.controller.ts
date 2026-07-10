@@ -61,9 +61,19 @@ export class AuthController {
   }
 
   private clearAuthCookies(response: any) {
-    response.clearCookie('access_token', { path: '/' });
-    response.clearCookie('refresh_token', { path: '/' });
-    response.clearCookie('csrf_token', { path: '/' });
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
+
+    const baseOpts = {
+      path: '/',
+      secure: isProd,
+      sameSite: (isProd ? 'strict' : 'lax') as 'strict' | 'lax',
+      ...(cookieDomain ? { domain: cookieDomain } : {}),
+    };
+
+    response.clearCookie('access_token', baseOpts);
+    response.clearCookie('refresh_token', baseOpts);
+    response.clearCookie('csrf_token', { ...baseOpts, httpOnly: false });
   }
 
   @Post('register')

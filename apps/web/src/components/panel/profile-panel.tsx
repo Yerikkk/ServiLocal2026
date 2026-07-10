@@ -142,11 +142,23 @@ export function ProfilePanel({ role }: { role: 'CLIENT' | 'PROVIDER' | 'ADMIN' }
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      alert('La subida real de imágenes se implementará con un servicio de almacenamiento (S3/Cloudinary). Por ahora, guardaremos una URL de ejemplo.');
-      setAvatarUrl(`https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`);
+      try {
+        setError('');
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const result = await api.upload<{ url: string }>('/api/upload/image', formData);
+        setAvatarUrl(result.url);
+        setSuccess('Avatar subido correctamente');
+        
+        setTimeout(() => setSuccess(''), 3000);
+      } catch (err) {
+        const apiErr = err as ApiError;
+        setError(apiErr.message ?? 'Error al subir la imagen');
+      }
     }
   };
 
@@ -222,7 +234,7 @@ export function ProfilePanel({ role }: { role: 'CLIENT' | 'PROVIDER' | 'ADMIN' }
                   <Calendar className="w-4 h-4" /> Miembro desde
                 </span>
                 <span className="font-medium" style={{ color: 'var(--sl-text-primary)' }}>
-                  {new Date(user.createdAt).toLocaleDateString()}
+                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'No disponible'}
                 </span>
               </div>
             </div>

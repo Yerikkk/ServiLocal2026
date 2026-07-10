@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { ContactSupportForm } from "@/components/support/contact-support-form";
 
 const faqClients = [
   { q: "¿Cómo solicito un servicio?", a: "Busca un proveedor en el directorio, revisa su perfil y barra de confianza, y envía una solicitud con la descripción del trabajo y fecha estimada." },
@@ -24,7 +25,7 @@ const faqProviders = [
 const faqGeneral = [
   { q: "¿Es gratis usar ServiLocal?", a: "Sí. Crear tu cuenta, buscar proveedores, enviar solicitudes y comunicarte por mensajería es completamente gratuito." },
   { q: "¿Mis datos están seguros?", a: "Sí. Usamos autenticación JWT, contraseñas hasheadas, protección contra fuerza bruta y toda acción queda registrada en auditoría." },
-  { q: "¿Cómo contacto al soporte?", a: "Puedes escribirnos a soporte@servilocal.com o usar el formulario de contacto en esta misma página." },
+  { q: "¿Cómo contacto al soporte?", a: "Puedes escribirnos a soporte@servilocal.pe o usar el formulario de contacto en esta misma página." },
 ];
 
 function FaqSection({ title, items }: { title: string; items: { q: string; a: string }[] }) {
@@ -72,16 +73,7 @@ export default function AyudaPage() {
 
       {/* Contact */}
       <section className="mx-auto w-full max-w-4xl px-5 pb-20 lg:px-8">
-        <div className="sl-card p-8">
-          <h2 className="text-2xl font-bold" style={{ color: 'var(--sl-text-primary)' }}>¿Necesitas más ayuda?</h2>
-          <p className="mt-2 text-sm" style={{ color: 'var(--sl-text-secondary)' }}>Escríbenos y te responderemos lo antes posible.</p>
-          <div className="mt-6">
-            <a href="mailto:soporte@servilocal.com" className="inline-flex h-12 items-center gap-3 rounded-xl bg-[var(--sl-primary)] px-6 text-sm font-bold text-white transition hover:bg-[var(--sl-primary-hover)] active:scale-[0.98]">
-              <Mail className="h-5 w-5" />
-              soporte@servilocal.com
-            </a>
-          </div>
-        </div>
+        <ContactSupportForm />
       </section>
 
       <Footer />

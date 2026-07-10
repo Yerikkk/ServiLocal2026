@@ -51,9 +51,9 @@ export class ServiceRequestsService {
         responsibleName: request.providerUser.fullName,
         businessName: providerProfile?.businessName ?? 'Proveedor',
         serviceName:
-          providerProfile?.category === 'OTHER'
+          providerProfile?.category?.slug === 'otro-servicio'
             ? providerProfile?.customServiceName || 'Otro servicio'
-            : (providerProfile?.category ?? 'Servicio'),
+            : (providerProfile?.category?.name ?? 'Servicio'),
         specialty: providerProfile?.specialty ?? null,
         serviceZone: providerProfile?.serviceZone ?? null,
         isVerified: providerProfile?.isVerified ?? false,
@@ -83,7 +83,6 @@ export class ServiceRequestsService {
 
   async create(userId: string, role: string, dto: CreateServiceRequestDto) {
     this.ensureClientRole(role);
-    await this.expirePendingRequests();
 
     const provider = await this.prisma.user.findFirst({
       where: {
@@ -148,7 +147,11 @@ export class ServiceRequestsService {
         },
         providerUser: {
           include: {
-            providerProfile: true,
+            providerProfile: {
+              include: {
+                category: true,
+              },
+            },
           },
         },
       },
@@ -173,7 +176,6 @@ export class ServiceRequestsService {
 
   async listClientRequests(userId: string, role: string) {
     this.ensureClientRole(role);
-    await this.expirePendingRequests();
 
     const requests = await this.prisma.serviceRequest.findMany({
       where: {
@@ -182,7 +184,11 @@ export class ServiceRequestsService {
       include: {
         providerUser: {
           include: {
-            providerProfile: true,
+            providerProfile: {
+              include: {
+                category: true,
+              },
+            },
           },
         },
       },
@@ -199,7 +205,6 @@ export class ServiceRequestsService {
 
   async listProviderRequests(userId: string, role: string) {
     this.ensureProviderRole(role);
-    await this.expirePendingRequests();
 
     const requests = await this.prisma.serviceRequest.findMany({
       where: {
@@ -225,7 +230,6 @@ export class ServiceRequestsService {
     requestId: string,
     dto: UpdateServiceRequestStatusDto,
   ) {
-    await this.expirePendingRequests();
 
     const request = await this.prisma.serviceRequest.findFirst({
       where: {
@@ -236,7 +240,11 @@ export class ServiceRequestsService {
         clientUser: true,
         providerUser: {
           include: {
-            providerProfile: true,
+            providerProfile: {
+              include: {
+                category: true,
+              },
+            },
           },
         },
       },
@@ -264,12 +272,19 @@ export class ServiceRequestsService {
       },
       data: {
         status: dto.status,
+        ...(dto.status === ServiceRequestStatus.CANCELLED && dto.cancelReason
+          ? { cancelReason: dto.cancelReason }
+          : {}),
       },
       include: {
         clientUser: true,
         providerUser: {
           include: {
-            providerProfile: true,
+            providerProfile: {
+              include: {
+                category: true,
+              },
+            },
           },
         },
       },
@@ -304,7 +319,7 @@ export class ServiceRequestsService {
           ? request.clientUserId
           : request.providerUserId;
       await this.trustService
-        .onRequestCancelled(request.id, cancelledByUserId, false)
+        .onRequestCancelled(request.id, cancelledByUserId, !!dto.cancelReason)
         .catch(() => {});
     } else if (dto.status === 'EXPIRED') {
       await this.trustService
@@ -398,11 +413,13 @@ export class ServiceRequestsService {
       const cancellableByClient = new Set<ServiceRequestStatus>([
         ServiceRequestStatus.PENDING,
         ServiceRequestStatus.NEGOTIATION,
+        ServiceRequestStatus.ACCEPTED,
+        ServiceRequestStatus.IN_PROGRESS,
       ]);
 
       if (!cancellableByClient.has(currentStatus)) {
         throw new BadRequestException(
-          'Solo puedes cancelar solicitudes pendientes o en negociación',
+          'Solo puedes cancelar solicitudes pendientes, en negociación, aceptadas o en proceso',
         );
       }
 

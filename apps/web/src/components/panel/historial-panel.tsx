@@ -41,7 +41,14 @@ type ServiceRequest = {
   serviceZone: string;
   preferredDate: string | null;
   expiresAt: string | null;
-  status: 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';
+  status:
+    | 'PENDING'
+    | 'NEGOTIATION'
+    | 'ACCEPTED'
+    | 'IN_PROGRESS'
+    | 'COMPLETED'
+    | 'CANCELLED'
+    | 'EXPIRED';
   createdAt: string;
   updatedAt: string;
   provider?: {
@@ -70,18 +77,30 @@ type StatusFilter = 'ALL' | ServiceRequest['status'];
 const STATUS_CONFIG: Record<ServiceRequest['status'], {
   label: string; bg: string; text: string; border: string; icon: React.ElementType;
 }> = {
-  PENDING:   { label: 'Pendiente',   bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',  icon: Hourglass },
-  ACCEPTED:  { label: 'Aceptada',    bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200',   icon: CheckCircle2 },
-  COMPLETED: { label: 'Completada',  bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200',icon: CheckCircle2 },
-  CANCELLED: { label: 'Cancelada',   bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200',    icon: XCircle },
-  EXPIRED:   { label: 'Expirada',    bg: 'bg-slate-50',   text: 'text-slate-500',   border: 'border-slate-200',  icon: AlertTriangle },
+  PENDING:      { label: 'Pendiente',       bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   icon: Hourglass },
+  NEGOTIATION:  { label: 'En negociación',  bg: 'bg-violet-50',  text: 'text-violet-700',  border: 'border-violet-200',  icon: MessageSquare },
+  ACCEPTED:     { label: 'Aceptada',        bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200',    icon: CheckCircle2 },
+  IN_PROGRESS:  { label: 'En proceso',      bg: 'bg-sky-50',     text: 'text-sky-700',     border: 'border-sky-200',     icon: Clock },
+  COMPLETED:    { label: 'Completada',      bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: CheckCircle2 },
+  CANCELLED:    { label: 'Cancelada',       bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200',     icon: XCircle },
+  EXPIRED:      { label: 'Expirada',        bg: 'bg-slate-50',   text: 'text-slate-500',   border: 'border-slate-200',   icon: AlertTriangle },
 };
 
-const STATUS_OPTIONS: StatusFilter[] = ['ALL', 'PENDING', 'ACCEPTED', 'COMPLETED', 'CANCELLED', 'EXPIRED'];
+const STATUS_OPTIONS: StatusFilter[] = [
+  'ALL',
+  'PENDING',
+  'NEGOTIATION',
+  'ACCEPTED',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'CANCELLED',
+  'EXPIRED',
+];
 
 /* ─── Helpers ───────────────────────────────────── */
 
 function formatDate(iso: string) {
+  if (!iso) return '';
   return new Date(iso).toLocaleDateString('es-PE', {
     day: 'numeric', month: 'short', year: 'numeric',
   });
@@ -156,7 +175,7 @@ export function HistorialPanel() {
   // Verificar qué solicitudes completadas ya tienen reseña
   const checkReviewedRequests = useCallback(async (completedIds: string[]) => {
     const results = await Promise.allSettled(
-      completedIds.map((id) => api.get<{ hasReview: boolean }>(`/api/reviews/check/${id}`)),
+      (completedIds || []).map((id) => api.get<{ hasReview: boolean }>(`/api/reviews/check/${id}`)),
     );
     const reviewed = new Set<string>();
     results.forEach((r, i) => {
@@ -167,7 +186,7 @@ export function HistorialPanel() {
 
   useEffect(() => {
     if (!user || user.role !== 'CLIENT') return;
-    const completedIds = requests.filter((r) => r.status === 'COMPLETED').map((r) => r.id);
+    const completedIds = (requests || []).filter((r) => r.status === 'COMPLETED').map((r) => r.id);
     if (completedIds.length > 0) checkReviewedRequests(completedIds);
   }, [requests, user, checkReviewedRequests]);
 
@@ -191,15 +210,15 @@ export function HistorialPanel() {
 
   /* ── Filter + Paginate ──────────────────────── */
   const filtered = statusFilter === 'ALL'
-    ? requests
-    : requests.filter((r) => r.status === statusFilter);
+    ? (requests || [])
+    : (requests || []).filter((r) => r.status === statusFilter);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   /* ── Count by status ────────────────────────── */
   const counts = STATUS_OPTIONS.reduce<Record<StatusFilter, number>>((acc, s) => {
-    acc[s] = s === 'ALL' ? requests.length : requests.filter((r) => r.status === s).length;
+    acc[s] = s === 'ALL' ? (requests || []).length : (requests || []).filter((r) => r.status === s).length;
     return acc;
   }, {} as Record<StatusFilter, number>);
 
@@ -292,8 +311,10 @@ export function HistorialPanel() {
           />
         ) : (
           <div className="space-y-3 sl-stagger">
-            {paginated.map((req) => {
-              const cfg = STATUS_CONFIG[req.status];
+            {(paginated || []).map((req) => {
+              const cfg =
+                STATUS_CONFIG[req.status] ??
+                STATUS_CONFIG.PENDING;
               const Icon = cfg.icon;
               const isOpen = expanded === req.id;
               const other = user.role === 'CLIENT' ? req.provider : req.client;

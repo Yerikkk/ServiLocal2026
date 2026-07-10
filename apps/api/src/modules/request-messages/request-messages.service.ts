@@ -7,6 +7,7 @@ import {
 import { ServiceRequestStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationsGateway } from '../../common/websockets/notifications.gateway';
 import { CreateRequestMessageDto } from './dto/create-request-message.dto';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class RequestMessagesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   private async getRequestForParticipant(requestId: string, userId: string) {
@@ -145,20 +147,36 @@ export class RequestMessagesService {
       },
     });
 
+    const formattedMessage = {
+      id: message.id,
+      content: message.content,
+      createdAt: message.createdAt,
+      sender: {
+        id: message.senderUser.id,
+        fullName: message.senderUser.fullName,
+        role: message.senderUser.role,
+      },
+      isMine: false,
+    };
+
+    // Send real-time message to the other party
+    const recipientId =
+      request.clientUserId === userId
+        ? request.providerUserId
+        : request.clientUserId;
+
+    this.notificationsGateway.sendMessageToUser(recipientId, { 
+      requestId, 
+      message: formattedMessage 
+    });
+
     // Notify the other party
     await this.notifyNewMessage(request, userId, message.senderUser.fullName);
 
     return {
       message: 'Mensaje enviado',
       item: {
-        id: message.id,
-        content: message.content,
-        createdAt: message.createdAt,
-        sender: {
-          id: message.senderUser.id,
-          fullName: message.senderUser.fullName,
-          role: message.senderUser.role,
-        },
+        ...formattedMessage,
         isMine: true,
       },
     };

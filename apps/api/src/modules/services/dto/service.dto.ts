@@ -19,6 +19,10 @@ export class CreateServiceDto {
   @IsOptional()
   @IsString()
   estimatedTime?: string;
+
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
 }
 
 export class UpdateServiceDto {
@@ -46,4 +50,8 @@ export class UpdateServiceDto {
 
   @IsOptional()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
 }

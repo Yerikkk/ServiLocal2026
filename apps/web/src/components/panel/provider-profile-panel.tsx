@@ -74,6 +74,8 @@ type ProviderProfile = {
   serviceZone: string;
   description: string;
   isVerified: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 type ProviderResponse = {
@@ -137,6 +139,8 @@ export function ProviderProfilePanel() {
   const [customServiceName, setCustomServiceName] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [serviceZone, setServiceZone] = useState('');
+  const [latitude, setLatitude] = useState<string | number | undefined>('');
+  const [longitude, setLongitude] = useState<string | number | undefined>('');
   const [description, setDescription] = useState('');
   const [isVerified, setIsVerified] = useState(false);
   const [trustSummary, setTrustSummary] = useState<TrustSummary | null>(null);
@@ -167,6 +171,8 @@ export function ProviderProfilePanel() {
     setCustomServiceName(data.providerProfile.customServiceName ?? '');
     setSpecialty(data.providerProfile.specialty ?? '');
     setServiceZone(data.providerProfile.serviceZone);
+    setLatitude(data.providerProfile.latitude ?? '');
+    setLongitude(data.providerProfile.longitude ?? '');
     setDescription(data.providerProfile.description);
     setIsVerified(data.providerProfile.isVerified);
     setTrustSummary(data.trustSummary);
@@ -195,13 +201,13 @@ export function ProviderProfilePanel() {
           applyProfileData(data);
           setRequestsSummary({
             total: requestsData.total,
-            pending: requestsData.items.filter((i) => i.status === 'PENDING').length,
-            negotiation: requestsData.items.filter((i) => i.status === 'NEGOTIATION').length,
-            accepted: requestsData.items.filter((i) => i.status === 'ACCEPTED').length,
-            inProgress: requestsData.items.filter((i) => i.status === 'IN_PROGRESS').length,
-            completed: requestsData.items.filter((i) => i.status === 'COMPLETED').length,
-            cancelled: requestsData.items.filter((i) => i.status === 'CANCELLED').length,
-            expired: requestsData.items.filter((i) => i.status === 'EXPIRED').length,
+            pending: (requestsData.items || []).filter((i) => i.status === 'PENDING').length,
+            negotiation: (requestsData.items || []).filter((i) => i.status === 'NEGOTIATION').length,
+            accepted: (requestsData.items || []).filter((i) => i.status === 'ACCEPTED').length,
+            inProgress: (requestsData.items || []).filter((i) => i.status === 'IN_PROGRESS').length,
+            completed: (requestsData.items || []).filter((i) => i.status === 'COMPLETED').length,
+            cancelled: (requestsData.items || []).filter((i) => i.status === 'CANCELLED').length,
+            expired: (requestsData.items || []).filter((i) => i.status === 'EXPIRED').length,
           });
         }
       } catch (err) {
@@ -246,6 +252,8 @@ export function ProviderProfilePanel() {
         customServiceName: isOtherService ? customServiceName.trim() : undefined,
         specialty: specialty.trim() || undefined,
         serviceZone,
+        latitude: latitude !== '' ? Number(latitude) : undefined,
+        longitude: longitude !== '' ? Number(longitude) : undefined,
         description: description.trim(),
       };
 
@@ -256,6 +264,8 @@ export function ProviderProfilePanel() {
       setCustomServiceName(updateData.providerProfile.customServiceName ?? '');
       setSpecialty(updateData.providerProfile.specialty ?? '');
       setServiceZone(updateData.providerProfile.serviceZone);
+      setLatitude(updateData.providerProfile.latitude ?? '');
+      setLongitude(updateData.providerProfile.longitude ?? '');
       setDescription(updateData.providerProfile.description);
       setIsVerified(updateData.providerProfile.isVerified);
       setTrustSummary(updateData.trustSummary);
@@ -409,6 +419,36 @@ export function ProviderProfilePanel() {
                 </div>
               </div>
 
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-900">Latitud <span className="font-normal text-slate-400">(opcional)</span></label>
+                <div className="relative">
+                  <MapPin className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input 
+                    type="number" 
+                    step="0.0000001" 
+                    value={latitude} 
+                    onChange={(e) => setLatitude(e.target.value)} 
+                    placeholder="Ej. -4.576" 
+                    className={`${selectClassName} pl-10`} 
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-900">Longitud <span className="font-normal text-slate-400">(opcional)</span></label>
+                <div className="relative">
+                  <MapPin className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input 
+                    type="number" 
+                    step="0.0000001" 
+                    value={longitude} 
+                    onChange={(e) => setLongitude(e.target.value)} 
+                    placeholder="Ej. -81.275" 
+                    className={`${selectClassName} pl-10`} 
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1.5 sm:col-span-2">
                 <label className="text-sm font-semibold text-slate-900">Descripción del servicio</label>
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe en pocas líneas tu experiencia y el tipo de trabajos que realizas." className={textareaClassName} />
@@ -432,11 +472,11 @@ export function ProviderProfilePanel() {
                   <ShieldCheck className="h-5 w-5 shrink-0" />
                   <span className="text-sm font-semibold">{isVerified ? 'Perfil verificado por ServiLocal' : 'Verificación pendiente'}</span>
                 </div>
-                {trustSummary?.nextSteps.length ? (
+                {(trustSummary?.nextSteps || []).length ? (
                   <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-sm text-blue-700 space-y-2">
                     <p className="font-semibold">Siguientes pasos:</p>
                     <ul className="list-disc pl-4 space-y-1">
-                      {trustSummary.nextSteps.map(step => <li key={step}>{step}</li>)}
+                      {(trustSummary?.nextSteps || []).map(step => <li key={step}>{step}</li>)}
                     </ul>
                   </div>
                 ) : (

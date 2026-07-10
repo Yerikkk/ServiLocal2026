@@ -34,6 +34,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { VerifiedBadge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/toast';
 import { api } from '@/lib/api-client';
+import { getProviderCategoryKey } from '@/lib/provider-display';
 
 /* ─── Types ─────────────────────────────────────── */
 
@@ -51,7 +52,10 @@ type FavoriteProvider = {
   responsibleName: string;
   phone: string | null;
   businessName: string;
-  category: string;
+  categoryId?: string;
+  categoryName?: string | null;
+  categorySlug?: string | null;
+  category?: string | null;
   serviceName: string;
   serviceZone: string;
   isVerified: boolean;
@@ -87,11 +91,13 @@ const categoryIconMap: Record<string, { icon: React.ElementType; color: string }
   AIRE_ACONDICIONADO: { icon: Wind,  color: '#06b6d4' },
 };
 
-function getCategoryDisplay(category: string) {
+function getCategoryDisplay(category?: string | null) {
+  if (!category) return { icon: Wrench, color: '#64748b' };
   return categoryIconMap[category] ?? { icon: Wrench, color: '#64748b' };
 }
 
 function formatDate(iso: string) {
+  if (!iso) return '';
   return new Date(iso).toLocaleDateString('es-PE', {
     day: 'numeric',
     month: 'short',
@@ -178,7 +184,7 @@ export function FavoritesPanel() {
     setRemovingProvider(providerId);
     try {
       await api.post(`/api/favorites/providers/${providerId}`);
-      setProviders((prev) => prev.filter((p) => p.providerId !== providerId));
+      setProviders((prev) => (prev || []).filter((p) => p.providerId !== providerId));
       toast({ type: 'success', title: 'Eliminado', message: 'Proveedor removido de tus favoritos.' });
     } catch {
       toast({ type: 'error', title: 'Error', message: 'No se pudo eliminar el favorito.' });
@@ -192,7 +198,7 @@ export function FavoritesPanel() {
     setRemovingService(serviceId);
     try {
       await api.post(`/api/favorites/services/${serviceId}`);
-      setServices((prev) => prev.filter((s) => s.service.id !== serviceId));
+      setServices((prev) => (prev || []).filter((s) => s.service.id !== serviceId));
       toast({ type: 'success', title: 'Eliminado', message: 'Servicio removido de tus favoritos.' });
     } catch {
       toast({ type: 'error', title: 'Error', message: 'No se pudo eliminar el favorito.' });
@@ -282,7 +288,7 @@ export function FavoritesPanel() {
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 sl-stagger">
                 {providers.map((prov) => {
-                  const catDisplay = getCategoryDisplay(prov.category);
+                  const catDisplay = getCategoryDisplay(getProviderCategoryKey(prov));
                   const Icon = catDisplay.icon;
                   const isRemoving = removingProvider === prov.providerId;
 
@@ -308,7 +314,7 @@ export function FavoritesPanel() {
                         {/* Avatar + name */}
                         <div className="flex items-center gap-3 mb-3">
                           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--sl-primary)] text-white text-lg font-black shadow-sm group-hover:scale-105 transition-transform">
-                            {prov.businessName.charAt(0).toUpperCase()}
+                            {prov.businessName?.charAt(0)?.toUpperCase() || '?'}
                           </div>
                           <div className="min-w-0">
                             <h2

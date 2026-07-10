@@ -33,7 +33,7 @@ export function RequestServiceForm({
     event.preventDefault();
     setFeedback('');
 
-    if (!serviceTitle.trim() || !serviceZone.trim() || message.trim().length < 10) {
+    if (!(serviceTitle || '').trim() || !(serviceZone || '').trim() || (message || '').trim().length < 10) {
       setFeedbackType('error');
       setFeedback('Completa el servicio, la zona y un mensaje de al menos 10 caracteres.');
       return;

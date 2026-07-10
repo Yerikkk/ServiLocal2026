@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { CacheModule } from '@nestjs/cache-manager';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { redisStore } from 'cache-manager-redis-yet';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { validateEnv } from './common/config/env.validation';
@@ -20,6 +23,10 @@ import { TrustModule } from './modules/trust/trust.module';
 import { UsersModule } from './modules/users/users.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { SupportModule } from './modules/support/support.module';
+import { UploadModule } from './common/upload/upload.module';
+import { WebsocketsModule } from './common/websockets/websockets.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { CsrfGuard } from './common/guards/csrf.guard';
 
 @Module({
@@ -30,12 +37,32 @@ import { CsrfGuard } from './common/guards/csrf.guard';
       envFilePath: '.env',
       validate: validateEnv,
     }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000,
-        limit: 20,
-      },
-    ]),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        store: await redisStore({
+          url: configService.get<string>('REDIS_URL', 'redis://localhost:6379'),
+        }),
+      }),
+      inject: [ConfigService],
+    }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          {
+            ttl: 60000,
+            // Si estamos en modo de prueba de estrés, permitimos 1 millón de requests por minuto
+            limit: config.get<string>('STRESS_TEST') === 'true' ? 1000000 : 20,
+          },
+        ],
+        storage: new ThrottlerStorageRedisService(
+          config.get<string>('REDIS_URL', 'redis://localhost:6379'),
+        ),
+      }),
+    }),
     PrismaModule,
     UsersModule,
     AuthModule,
@@ -51,6 +78,10 @@ import { CsrfGuard } from './common/guards/csrf.guard';
     TasksModule,
     ReviewsModule,
     ReportsModule,
+    SupportModule,
+    UploadModule,
+    WebsocketsModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [

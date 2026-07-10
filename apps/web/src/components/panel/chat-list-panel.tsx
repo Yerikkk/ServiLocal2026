@@ -65,8 +65,8 @@ export function ChatListPanel({ role }: Props) {
             status: req.status,
             updatedAt: req.updatedAt,
             otherParty: {
-              id: role === 'CLIENT' ? req.provider.providerId : req.client.id,
-              name: role === 'CLIENT' ? req.provider.businessName : req.client.fullName,
+              id: role === 'CLIENT' ? req.provider?.providerId || '' : req.client?.id || '',
+              name: role === 'CLIENT' ? req.provider?.businessName || 'Proveedor' : req.client?.fullName || 'Cliente',
             }
           }));
           setItems(mapped);
@@ -95,9 +95,9 @@ export function ChatListPanel({ role }: Props) {
     );
   }
 
-  const filtered = items.filter(item => 
-    item.serviceTitle.toLowerCase().includes(search.toLowerCase()) || 
-    item.otherParty.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = (items || []).filter(item =>
+    (item.serviceTitle?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (item.otherParty.name?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
   return (
@@ -139,7 +139,7 @@ export function ChatListPanel({ role }: Props) {
         ) : (
           <div className="space-y-3">
             {filtered.map(item => {
-              const dateStr = new Date(item.updatedAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
+              const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' }) : '';
               const rolePath = role === 'CLIENT' ? 'cliente' : 'proveedor';
               
               return (
@@ -149,7 +149,7 @@ export function ChatListPanel({ role }: Props) {
                   className="flex items-center gap-4 p-4 rounded-2xl border border-[var(--sl-border)] hover:border-[var(--sl-primary)] transition-all bg-[var(--sl-surface)] group shadow-sm hover:shadow-md"
                 >
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--sl-primary-muted)] text-[var(--sl-primary)] font-bold text-lg">
-                    {item.otherParty.name.charAt(0).toUpperCase()}
+                    {item.otherParty.name?.charAt(0)?.toUpperCase() || '?'}
                   </div>
                   
                   <div className="flex-1 min-w-0">

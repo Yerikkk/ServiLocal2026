@@ -38,6 +38,7 @@ function getIconMeta(type: string): IconMeta {
 }
 
 function formatRelative(iso: string): string {
+  if (!iso) return '';
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
   if (mins < 1)  return 'Ahora mismo';

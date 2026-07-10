@@ -32,7 +32,7 @@ import { SkeletonDashboard, SkeletonCard } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge, TrustBadge, StatusBadge, VerifiedBadge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { translateCategory } from '@/lib/translations';
+import { getProviderCategoryLabel } from '@/lib/provider-display';
 import { api } from '@/lib/api-client';
 
 type CurrentUser = {
@@ -53,7 +53,10 @@ type PublicProvider = {
   responsibleName: string;
   phone?: string | null;
   businessName: string;
-  category: string;
+  categoryId?: string;
+  categorySlug?: string | null;
+  categoryName?: string | null;
+  category?: string | null;
   serviceName: string;
   serviceZone: string;
   description: string;
@@ -152,17 +155,19 @@ export function ClientDashboardPanel() {
         }
 
         const [providersData, requestsData] = await Promise.all([
-          api.get<PublicProvidersResponse>('/api/providers/public?sort=trust_desc&verifiedOnly=true'),
+          api.get<PublicProvidersResponse>(
+            '/api/providers/public?sort=trust_desc&verifiedOnly=true&limit=12',
+          ),
           api.get<ClientServiceRequestsResponse>('/api/service-requests/client/me'),
         ]);
         
-        const pending = requestsData.items.filter((item) => item.status === 'PENDING').length;
-        const negotiation = requestsData.items.filter((item) => item.status === 'NEGOTIATION').length;
-        const accepted = requestsData.items.filter((item) => item.status === 'ACCEPTED').length;
-        const inProgress = requestsData.items.filter((item) => item.status === 'IN_PROGRESS').length;
-        const completed = requestsData.items.filter((item) => item.status === 'COMPLETED').length;
-        const cancelled = requestsData.items.filter((item) => item.status === 'CANCELLED').length;
-        const expired = requestsData.items.filter((item) => item.status === 'EXPIRED').length;
+        const pending = (requestsData.items || []).filter((item) => item.status === 'PENDING').length;
+        const negotiation = (requestsData.items || []).filter((item) => item.status === 'NEGOTIATION').length;
+        const accepted = (requestsData.items || []).filter((item) => item.status === 'ACCEPTED').length;
+        const inProgress = (requestsData.items || []).filter((item) => item.status === 'IN_PROGRESS').length;
+        const completed = (requestsData.items || []).filter((item) => item.status === 'COMPLETED').length;
+        const cancelled = (requestsData.items || []).filter((item) => item.status === 'CANCELLED').length;
+        const expired = (requestsData.items || []).filter((item) => item.status === 'EXPIRED').length;
 
         if (!ignore) {
           setUser(authUser);
@@ -273,7 +278,7 @@ export function ClientDashboardPanel() {
           />
           <KPICard
             title="Proveedores en tu zona"
-            value={providers.length}
+            value={(providers || []).length}
             icon={<MapPin className="h-5 w-5" />}
           />
         </section>
@@ -350,14 +355,14 @@ export function ClientDashboardPanel() {
               Proveedores Destacados
             </h2>
             <div className="flex flex-col gap-4">
-              {featuredProviders.length === 0 ? (
+              {(featuredProviders || []).length === 0 ? (
                 <EmptyState
                   icon={<ShieldCheck className="h-6 w-6" />}
                   title="Sin destacados"
                   description="Aún no hay proveedores verificados."
                 />
               ) : (
-                featuredProviders.map((provider) => (
+                (featuredProviders || []).map((provider) => (
                   <Link
                     key={provider.providerId}
                     href={`/proveedores/${provider.providerId}`}
@@ -365,14 +370,14 @@ export function ClientDashboardPanel() {
                   >
                     <div className="flex items-start gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold">
-                        {provider.businessName.charAt(0).toUpperCase()}
+                        {provider.businessName?.charAt(0)?.toUpperCase() || '?'}
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate font-bold text-slate-900 text-sm">
                           {provider.businessName}
                         </h3>
                         <p className="truncate text-xs text-slate-500">
-                          {translateCategory(provider.category)}
+                          {getProviderCategoryLabel(provider)}
                         </p>
                       </div>
                       {provider.isVerified && <VerifiedBadge />}

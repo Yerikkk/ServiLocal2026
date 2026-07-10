@@ -49,7 +49,13 @@ export class FavoritesService {
             providerProfile: {
               select: {
                 businessName: true,
-                category: true,
+                categoryId: true,
+                category: {
+                  select: {
+                    name: true,
+                    slug: true,
+                  },
+                },
                 customServiceName: true,
                 specialty: true,
                 serviceZone: true,
@@ -72,11 +78,13 @@ export class FavoritesService {
           responsibleName: f.provider.fullName,
           phone: f.provider.phone,
           businessName: f.provider.providerProfile!.businessName,
-          category: f.provider.providerProfile!.category,
+          categoryId: f.provider.providerProfile!.categoryId,
+          categorySlug: f.provider.providerProfile!.category?.slug ?? null,
+          categoryName: f.provider.providerProfile!.category?.name ?? null,
           serviceName:
-            f.provider.providerProfile!.category === 'OTHER'
-              ? f.provider.providerProfile!.customServiceName || 'Otro servicio'
-              : f.provider.providerProfile!.category,
+            f.provider.providerProfile!.customServiceName
+              ? f.provider.providerProfile!.customServiceName
+              : f.provider.providerProfile!.category?.name ?? 'Otro servicio',
           serviceZone: f.provider.providerProfile!.serviceZone,
           isVerified: f.provider.providerProfile!.isVerified,
           createdAt: f.createdAt,

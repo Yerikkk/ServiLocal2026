@@ -3,24 +3,21 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useMemo, useState, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import { FaFacebookF } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { AuthInput } from './auth-input';
 import { AuthPasswordInput } from './auth-password-input';
 import { AuthSocialButton } from './auth-social-button';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiUrl } from '@/lib/api-url';
+import { redirectAfterLogin, type AuthUser } from '@/lib/auth-session';
 
 export function LoginForm() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const isDisabled = useMemo(() => {
     return loading || !email.trim() || !password.trim();
@@ -28,12 +25,13 @@ export function LoginForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (loading) return;
+
     setLoading(true);
     setError('');
-    setSuccess('');
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      const response = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,16 +50,17 @@ export function LoginForm() {
         throw new Error(data?.message ?? 'No se pudo iniciar sesión');
       }
 
-      setSuccess('Inicio de sesión correcto. Redirigiendo...');
+      const user = data?.user as AuthUser | undefined;
+      if (user?.role) {
+        redirectAfterLogin(user);
+        return;
+      }
 
-      setTimeout(() => {
-        router.push('/panel');
-      }, 900);
+      window.location.replace('/panel');
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Ocurrió un error inesperado';
       setError(message);
-    } finally {
       setLoading(false);
     }
   }
@@ -157,12 +156,6 @@ export function LoginForm() {
         {error ? (
           <div className="rounded-[20px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
-          </div>
-        ) : null}
-
-        {success ? (
-          <div className="rounded-[20px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {success}
           </div>
         ) : null}
 

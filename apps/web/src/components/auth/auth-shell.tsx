@@ -1,47 +1,52 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { AuthBrandPanel } from './auth-brand-panel';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Moon, Sun, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
-import { usePathname, useRouter } from 'next/navigation';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { fetchAuthMe, getRolePath } from '@/lib/auth-session';
 
 type AuthShellProps = {
   children: ReactNode;
 };
 
-export function AuthShell({ children }: AuthShellProps) {
+function AuthShellInner({ children }: AuthShellProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
-  const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setMounted(true);
 
-    // Rutas de recuperación: permitir acceso aunque haya sesión activa
     const recoveryRoutes = ['/recuperar-contrasena', '/restablecer-contrasena'];
     if (recoveryRoutes.some((r) => pathname.startsWith(r))) return;
 
-    // Check if already authenticated to prevent back-button logout bug
+    if (searchParams.get('sesion') === 'cerrada') return;
+
+    let ignore = false;
+
     async function checkAuth() {
-      try {
-        const res = await fetch(`${API_URL}/api/auth/me`, { credentials: 'include' });
-        if (res.ok) {
-          router.replace('/panel');
-        }
-      } catch { /* ignore */ }
+      const user = await fetchAuthMe();
+      if (!ignore && user?.role) {
+        window.location.replace(getRolePath(user.role));
+      }
     }
+
     checkAuth();
-  }, [router, pathname]);
+
+    return () => {
+      ignore = true;
+    };
+  }, [pathname, searchParams]);
 
   const isDark = theme === 'dark' || (theme === 'system' && mounted && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const sessionClosed = searchParams.get('sesion') === 'cerrada';
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[0.96fr_1.04fr]" style={{ background: 'var(--sl-bg)' }}>
@@ -50,7 +55,6 @@ export function AuthShell({ children }: AuthShellProps) {
       </div>
 
       <div className="relative min-h-screen px-6 py-10 md:px-10 lg:px-14 xl:px-18" style={{ background: 'var(--sl-surface)' }}>
-        {/* Navigation Actions */}
         <div className="absolute left-6 top-6 md:left-10 md:top-10 flex gap-2 z-10">
           <Link
             href="/"
@@ -74,8 +78,27 @@ export function AuthShell({ children }: AuthShellProps) {
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
         )}
+        {sessionClosed ? (
+          <div className="mx-auto mt-4 w-full max-w-[500px] rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 md:mt-12">
+            Sesión cerrada correctamente. Puedes iniciar sesión de nuevo.
+          </div>
+        ) : null}
         <div className="mx-auto mt-8 w-full max-w-[500px] md:mt-12">{children}</div>
       </div>
     </div>
+  );
+}
+
+export function AuthShell({ children }: AuthShellProps) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center" style={{ background: 'var(--sl-bg)' }}>
+          <p className="text-sm text-slate-500 animate-pulse">Cargando...</p>
+        </div>
+      }
+    >
+      <AuthShellInner>{children}</AuthShellInner>
+    </Suspense>
   );
 }

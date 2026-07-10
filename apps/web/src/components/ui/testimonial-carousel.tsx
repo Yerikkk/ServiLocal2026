@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react';
+import { cn } from '@/lib/cn';
 
 type Testimonial = {
   name: string;
@@ -101,28 +102,45 @@ export function TestimonialCarousel() {
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
+          {/* Progress bar */}
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-48 h-1 bg-[var(--sl-border)] rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-cyan-400 to-[var(--sl-primary)]"
+              style={{ 
+                width: isPaused ? '100%' : '100%', 
+                animation: isPaused ? 'none' : 'sl-progress-fill 5s linear infinite'
+              }}
+            />
+          </div>
+
           {/* Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative perspective-1000">
             {getVisibleIndices().map((index, pos) => {
               const t = testimonials[index];
+              const isCenter = pos === 1; // Middle card on desktop
               return (
                 <div
                   key={`${index}-${current}`}
-                  className={`sl-card-premium p-8 bg-gradient-to-br ${gradientBgs[index]} sl-animate-carousel-in`}
+                  className={cn(
+                    "sl-card-premium p-8 bg-gradient-to-br transition-all duration-700 sl-animate-carousel-in",
+                    gradientBgs[index],
+                    isCenter ? "scale-105 z-10 shadow-xl border-[var(--sl-primary)]/30" : "scale-95 opacity-80 hover:opacity-100 blur-[1px] hover:blur-none"
+                  )}
                   style={{ animationDelay: `${pos * 80}ms` }}
                 >
                   {/* Quote icon */}
-                  <div className="mb-5">
-                    <Quote className="h-8 w-8 text-[var(--sl-primary)] opacity-40" />
+                  <div className="mb-5 relative">
+                    <Quote className="h-10 w-10 text-[var(--sl-primary)] opacity-20 absolute -top-4 -left-2" />
+                    <Quote className="h-6 w-6 text-[var(--sl-primary)] relative z-10" />
                   </div>
 
                   {/* Content */}
-                  <p className="text-sm leading-7 font-medium" style={{ color: 'var(--sl-text-primary)' }}>
+                  <p className="text-sm leading-7 font-medium relative z-10" style={{ color: 'var(--sl-text-primary)' }}>
                     &ldquo;{t.content}&rdquo;
                   </p>
 
                   {/* Stars */}
-                  <div className="flex gap-1 mt-5">
+                  <div className="flex gap-1 mt-6">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
@@ -132,8 +150,8 @@ export function TestimonialCarousel() {
                   </div>
 
                   {/* Author */}
-                  <div className="flex items-center gap-3 mt-6 pt-5 border-t border-[var(--sl-border-light)]">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--sl-primary)] text-white font-bold text-sm shadow-sm">
+                  <div className="flex items-center gap-4 mt-6 pt-5 border-t border-[var(--sl-border-light)]">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 text-white font-bold text-lg shadow-md ring-2 ring-white dark:ring-slate-800">
                       {t.avatar}
                     </div>
                     <div>

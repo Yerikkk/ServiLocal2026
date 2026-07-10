@@ -144,10 +144,40 @@ export function RegisterForm() {
       return;
     }
 
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(fullName.trim())) {
+      setFeedbackType('error');
+      setFeedback('El nombre debe contener solo letras y espacios.');
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setFeedbackType('error');
+      setFeedback('Por favor, ingresa un correo electrónico válido.');
+      return;
+    }
+
+    if (!/^\+?\d+$/.test(phone.trim())) {
+      setFeedbackType('error');
+      setFeedback('El teléfono debe contener solo dígitos.');
+      return;
+    }
+
+    if (role === 'CLIENT' && documentNumber.trim() && !/^\d+$/.test(documentNumber.trim())) {
+      setFeedbackType('error');
+      setFeedback('El número de documento debe contener solo dígitos.');
+      return;
+    }
+
     if (role === 'PROVIDER') {
       if (!ruc.trim()) {
         setFeedbackType('error');
         setFeedback('Para ofrecer servicios, el RUC es obligatorio.');
+        return;
+      }
+
+      if (!/^\d{11}$/.test(ruc.trim())) {
+        setFeedbackType('error');
+        setFeedback('El RUC debe tener exactamente 11 dígitos numéricos.');
         return;
       }
 
@@ -174,7 +204,7 @@ export function RegisterForm() {
           ? {
               accountType: 'CLIENT',
               fullName: fullName.trim(),
-              email: email.trim().toLowerCase(),
+              email: (email.trim() || '').toLowerCase(),
               phone: phone.trim(),
               documentNumber: documentNumber.trim() || undefined,
               password,
@@ -183,7 +213,7 @@ export function RegisterForm() {
           : {
               accountType: 'PROVIDER',
               fullName: fullName.trim(),
-              email: email.trim().toLowerCase(),
+              email: (email.trim() || '').toLowerCase(),
               phone: phone.trim(),
               ruc: ruc.trim(),
               businessName: businessName.trim(),
@@ -299,7 +329,7 @@ export function RegisterForm() {
             name="fullName"
             type="text"
             value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            onChange={(e) => setFullName(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''))}
             placeholder="Ingresa tu nombre completo"
             icon={<User className="h-5 w-5" />}
             autoComplete="off"
@@ -345,7 +375,7 @@ export function RegisterForm() {
             name="phone"
             type="text"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(e.target.value.replace(/[^\d+]/g, ''))}
             placeholder="999888777"
             icon={<Phone className="h-5 w-5" />}
             autoComplete="off"
@@ -375,7 +405,7 @@ export function RegisterForm() {
                   name="documentNumber"
                   type="text"
                   value={documentNumber}
-                  onChange={(e) => setDocumentNumber(e.target.value)}
+                  onChange={(e) => setDocumentNumber(e.target.value.replace(/[^\d]/g, ''))}
                   placeholder="Ej. 12345678 o 20123456789"
                   icon={<FileText className="h-5 w-5" />}
                   autoComplete="off"
@@ -412,7 +442,7 @@ export function RegisterForm() {
                   name="ruc"
                   type="text"
                   value={ruc}
-                  onChange={(e) => setRuc(e.target.value)}
+                  onChange={(e) => setRuc(e.target.value.replace(/[^\d]/g, ''))}
                   placeholder="20123456789"
                   icon={<FileText className="h-5 w-5" />}
                   autoComplete="off"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BadgeCheck,
@@ -25,6 +25,7 @@ import {
   Droplets,
   AlertCircle,
   Package,
+  Camera,
 } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,8 @@ import { Modal } from '@/components/ui/modal';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useToast } from '@/components/ui/toast';
-import { api } from '@/lib/api-client';
+import { api, type ApiError } from '@/lib/api-client';
+import { apiUrl } from '@/lib/api-url';
 
 /* ─── Types ─────────────────────────────────────── */
 
@@ -56,6 +58,7 @@ type MyService = {
   description: string;
   referencePrice: string | null;
   estimatedTime: string | null;
+  imageUrl?: string | null;
   isActive: boolean;
   createdAt: string;
   category: { id: string; name: string };
@@ -69,6 +72,7 @@ type ServiceForm = {
   referencePrice: string;
   estimatedTime: string;
   isActive: boolean;
+  imageUrl?: string | null;
 };
 
 const EMPTY_FORM: ServiceForm = {
@@ -78,6 +82,7 @@ const EMPTY_FORM: ServiceForm = {
   referencePrice: '',
   estimatedTime: '',
   isActive: true,
+  imageUrl: null,
 };
 
 /* ─── Category icon map ─────────────────────────── */
@@ -94,7 +99,7 @@ const categoryIconMap: Record<string, { icon: React.ElementType; color: string }
 };
 
 function getCategoryDisplay(slug: string) {
-  const key = slug.toLowerCase().replace(/-/g, '_');
+  const key = (slug || '').toLowerCase().replace(/-/g, '_');
   return categoryIconMap[key] ?? { icon: Wrench, color: '#64748b' };
 }
 
@@ -118,15 +123,39 @@ function ServiceFormModal({
   const [form, setForm] = useState<ServiceForm>({ ...EMPTY_FORM, ...initialData });
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof ServiceForm, string>>>({});
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset when modal opens
   useEffect(() => {
     if (open) {
       setForm({ ...EMPTY_FORM, ...initialData });
       setErrors({});
+      setUploadError('');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        setUploading(true);
+        setUploadError('');
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const result = await api.upload<{ url: string }>('/api/upload/image', formData);
+        setForm((prev) => ({ ...prev, imageUrl: result.url }));
+      } catch (err) {
+        const apiErr = err as ApiError;
+        setUploadError(apiErr.message ?? 'Error al subir la imagen');
+      } finally {
+        setUploading(false);
+      }
+    }
+  };
 
   function set<K extends keyof ServiceForm>(key: K, value: ServiceForm[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -218,6 +247,60 @@ function ServiceFormModal({
             }
             <span className="text-xs" style={{ color: 'var(--sl-text-muted)' }}>{form.name.length}/80</span>
           </div>
+        </div>
+
+        {/* Image */}
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold" style={{ color: 'var(--sl-text-primary)' }}>
+            Imagen del servicio
+          </label>
+          <div className="mt-2">
+            {form.imageUrl ? (
+              <div className="relative">
+                <img
+                  src={form.imageUrl}
+                  alt="Imagen del servicio"
+                  className="w-full h-48 object-cover rounded-xl border border-[var(--sl-border)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, imageUrl: null }))}
+                  className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex flex-col items-center justify-center gap-2 w-full h-48 rounded-xl border-2 border-dashed border-[var(--sl-border)] bg-[var(--sl-bg)] hover:bg-[var(--sl-primary-muted)] transition"
+              >
+                {uploading ? (
+                  <div className="h-6 w-6 sl-animate-spin rounded-full border-2 border-[var(--sl-primary)] border-t-transparent" />
+                ) : (
+                  <>
+                    <Camera className="h-8 w-8 text-[var(--sl-text-muted)]" />
+                    <p className="text-sm font-medium text-[var(--sl-text-muted)]">Subir imagen del servicio</p>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            accept="image/*"
+            className="hidden"
+          />
+          {uploadError && (
+            <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+              <AlertCircle className="h-3 w-3" />
+              {uploadError}
+            </p>
+          )}
         </div>
 
         {/* Description */}
@@ -360,7 +443,7 @@ export function ProviderServicesPanel() {
         setLoading(true);
         const [userData, catData] = await Promise.all([
           api.get<CurrentUser>('/api/auth/me'),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/api/services/categories`)
+          fetch(apiUrl('/api/services/categories'))
             .then((r) => (r.ok ? r.json() : { items: [] })),
         ]);
         if (userData.role !== 'PROVIDER') { router.replace('/panel'); return; }
@@ -401,6 +484,7 @@ export function ProviderServicesPanel() {
       categoryId: form.categoryId,
       name: form.name.trim(),
       description: form.description.trim(),
+      imageUrl: form.imageUrl,
     };
     if (form.referencePrice) body.referencePrice = form.referencePrice;
     if (form.estimatedTime.trim()) body.estimatedTime = form.estimatedTime.trim();
@@ -418,6 +502,7 @@ export function ProviderServicesPanel() {
       name: form.name.trim(),
       description: form.description.trim(),
       isActive: form.isActive,
+      imageUrl: form.imageUrl,
     };
     if (form.referencePrice) body.referencePrice = form.referencePrice;
     else body.referencePrice = null;
@@ -470,8 +555,8 @@ export function ProviderServicesPanel() {
     );
   }
 
-  const activeCount   = services.filter((s) => s.isActive).length;
-  const inactiveCount = services.filter((s) => !s.isActive).length;
+  const activeCount   = (services || []).filter((s) => s.isActive).length;
+  const inactiveCount = (services || []).filter((s) => !s.isActive).length;
 
   /* ─── Render ────────────────────────────────── */
   return (
@@ -503,10 +588,10 @@ export function ProviderServicesPanel() {
         </header>
 
         {/* Stats strip */}
-        {services.length > 0 && (
+        {(services || []).length > 0 && (
           <div className="grid grid-cols-3 gap-4 sl-animate-fade-in">
             {[
-              { label: 'Total',    value: services.length, color: 'bg-blue-50 text-blue-600',    icon: Layers },
+              { label: 'Total',    value: (services || []).length, color: 'bg-blue-50 text-blue-600',    icon: Layers },
               { label: 'Activos',  value: activeCount,     color: 'bg-emerald-50 text-emerald-600', icon: CheckCircle },
               { label: 'Pausados', value: inactiveCount,   color: 'bg-amber-50 text-amber-600',  icon: PowerOff },
             ].map(({ label, value, color, icon: Icon }) => (
@@ -528,7 +613,7 @@ export function ProviderServicesPanel() {
         {/* Services list */}
         {svcLoading ? (
           <SkeletonList count={4} />
-        ) : services.length === 0 ? (
+        ) : (services || []).length === 0 ? (
           <EmptyState
             icon={<Package />}
             title="Aún no tienes servicios publicados"
@@ -541,8 +626,8 @@ export function ProviderServicesPanel() {
           />
         ) : (
           <div className="space-y-4 sl-stagger">
-            {services.map((svc) => {
-              const catDisplay = getCategoryDisplay(svc.category.name.toLowerCase());
+            {(services || []).map((svc) => {
+              const catDisplay = getCategoryDisplay(svc.category?.name?.toLowerCase() || '');
               const Icon = catDisplay.icon;
               const isToggling = togglingId === svc.id;
 
@@ -594,7 +679,7 @@ export function ProviderServicesPanel() {
                     <div className="flex flex-wrap gap-2 text-xs">
                       <span className="inline-flex items-center gap-1 rounded-full bg-[var(--sl-border-light)] px-2.5 py-1 font-medium" style={{ color: 'var(--sl-text-secondary)' }}>
                         <Tag className="h-3 w-3" />
-                        {svc.category.name}
+                        {svc.category?.name || 'Sin categoría'}
                       </span>
                       {svc.referencePrice && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 font-bold text-emerald-700">
@@ -663,12 +748,13 @@ export function ProviderServicesPanel() {
         initialData={
           editTarget
             ? {
-                categoryId:     editTarget.category.id,
+                categoryId:     editTarget.category?.id || '',
                 name:           editTarget.name,
                 description:    editTarget.description,
                 referencePrice: editTarget.referencePrice ?? '',
                 estimatedTime:  editTarget.estimatedTime ?? '',
                 isActive:       editTarget.isActive,
+                imageUrl:       editTarget.imageUrl,
               }
             : undefined
         }

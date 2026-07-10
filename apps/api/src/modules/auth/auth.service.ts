@@ -11,7 +11,6 @@ import * as argon2 from 'argon2';
 import { createHash, randomBytes } from 'crypto';
 import * as nodemailer from 'nodemailer';
 import {
-  ServiceCategory,
   SessionStatus,
   UserRole,
   UserStatus,
@@ -129,6 +128,18 @@ export class AuthService {
       throw new ConflictException('El correo ya está registrado');
     }
 
+    if (registerDto.accountType === RegisterAccountType.CLIENT && registerDto.documentNumber) {
+      const existingUserWithDoc = await this.prisma.user.findFirst({
+        where: {
+          documentNumber: registerDto.documentNumber,
+        },
+      });
+
+      if (existingUserWithDoc) {
+        throw new ConflictException('El número de documento ya está registrado');
+      }
+    }
+
     if (registerDto.accountType === RegisterAccountType.PROVIDER) {
       const existingProviderWithRuc =
         await this.prisma.providerProfile.findUnique({
@@ -142,7 +153,7 @@ export class AuthService {
       }
 
       if (
-        registerDto.category === ServiceCategory.OTHER &&
+        registerDto.category === 'otro-servicio' &&
         !registerDto.customServiceName?.trim()
       ) {
         throw new BadRequestException(
@@ -174,11 +185,8 @@ export class AuthService {
                 create: {
                   ruc: registerDto.ruc!,
                   businessName: registerDto.businessName!,
-                  category: registerDto.category!,
-                  customServiceName:
-                    registerDto.category === ServiceCategory.OTHER
-                      ? this.normalizeOptional(registerDto.customServiceName)
-                      : null,
+                  categoryId: registerDto.category!,
+                  customServiceName: this.normalizeOptional(registerDto.customServiceName),
                   specialty: this.normalizeOptional(registerDto.specialty),
                   serviceZone: registerDto.serviceZone!,
                   description: registerDto.description!,
@@ -187,7 +195,11 @@ export class AuthService {
             : undefined,
       },
       include: {
-        providerProfile: true,
+        providerProfile: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
 
@@ -200,7 +212,7 @@ export class AuthService {
         metadata: {
           accountType: registerDto.accountType,
           email: user.email,
-          category: user.providerProfile?.category ?? null,
+          categoryId: user.providerProfile?.categoryId ?? null,
           customServiceName: user.providerProfile?.customServiceName ?? null,
         },
       },
@@ -220,7 +232,8 @@ export class AuthService {
           ? {
               ruc: user.providerProfile.ruc,
               businessName: user.providerProfile.businessName,
-              category: user.providerProfile.category,
+              categoryId: user.providerProfile.categoryId,
+              categoryName: user.providerProfile.category?.name ?? null,
               customServiceName: user.providerProfile.customServiceName,
               specialty: user.providerProfile.specialty,
               serviceZone: user.providerProfile.serviceZone,

@@ -4,11 +4,11 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
   MinLength,
   ValidateIf,
 } from 'class-validator';
-import { ServiceCategory } from '@prisma/client';
 
 export enum RegisterAccountType {
   CLIENT = 'CLIENT',
@@ -32,16 +32,22 @@ export class RegisterDto {
   @IsString()
   @MinLength(3)
   @MaxLength(120)
+  @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, {
+    message: 'El nombre debe contener solo letras y espacios',
+  })
   @Transform(({ value }) => trimValue(value))
   fullName!: string;
 
-  @IsEmail()
+  @IsEmail({}, { message: 'El correo electrónico debe tener un formato válido' })
   @Transform(({ value }) => String(value).trim().toLowerCase())
   email!: string;
 
   @IsString()
   @MinLength(6)
   @MaxLength(30)
+  @Matches(/^\+?\d+$/, {
+    message: 'El número de teléfono debe contener solo dígitos (opcionalmente con prefijo +)',
+  })
   @Transform(({ value }) => trimValue(value))
   phone!: string;
 
@@ -49,6 +55,9 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   @MaxLength(20)
+  @Matches(/^\d+$/, {
+    message: 'El número de documento debe contener solo dígitos',
+  })
   @Transform(({ value }) => trimOptionalValue(value))
   documentNumber?: string;
 
@@ -56,6 +65,9 @@ export class RegisterDto {
   @IsString()
   @MinLength(11)
   @MaxLength(11)
+  @Matches(/^\d{11}$/, {
+    message: 'El RUC debe consistir en exactamente 11 dígitos numéricos',
+  })
   @Transform(({ value }) => trimValue(value))
   ruc?: string;
 
@@ -67,13 +79,13 @@ export class RegisterDto {
   businessName?: string;
 
   @ValidateIf((o) => o.accountType === RegisterAccountType.PROVIDER)
-  @IsEnum(ServiceCategory)
-  category?: ServiceCategory;
+  @IsString()
+  category?: string;
 
   @ValidateIf(
     (o) =>
       o.accountType === RegisterAccountType.PROVIDER &&
-      o.category === ServiceCategory.OTHER,
+      o.category === 'otro-servicio',
   )
   @IsString()
   @MinLength(2)
@@ -105,6 +117,9 @@ export class RegisterDto {
   @IsString()
   @MinLength(8)
   @MaxLength(100)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/, {
+    message: 'La contraseña debe incluir al menos una mayúscula, una minúscula, un número y un carácter especial',
+  })
   password!: string;
 
   @IsString()

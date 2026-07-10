@@ -7,7 +7,9 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CreateServiceDto, UpdateServiceDto } from './dto/service.dto';
@@ -19,6 +21,7 @@ export class ServicesController {
 
   // ─── Public ────────────────────────────────────────────
 
+  @UseInterceptors(CacheInterceptor)
   @Get('public')
   async listPublic(
     @Query('search') search?: string,
@@ -36,6 +39,7 @@ export class ServicesController {
     });
   }
 
+  @UseInterceptors(CacheInterceptor)
   @Get('categories')
   async listCategories() {
     return this.servicesService.listPublicCategories();

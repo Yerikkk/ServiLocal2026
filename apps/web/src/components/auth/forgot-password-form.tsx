@@ -53,7 +53,7 @@ export function ForgotPasswordForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: email.trim().toLowerCase(),
+          email: (email.trim() || '').toLowerCase(),
         }),
       });
 

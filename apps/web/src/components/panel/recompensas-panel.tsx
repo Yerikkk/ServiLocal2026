@@ -89,6 +89,7 @@ const HOW_TO_EARN = [
 /* ─── Helpers ───────────────────────────────────── */
 
 function formatDate(iso: string) {
+  if (!iso) return '';
   return new Date(iso).toLocaleDateString('es-PE', {
     day: 'numeric', month: 'short', year: 'numeric',
   });

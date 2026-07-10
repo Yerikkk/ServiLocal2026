@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ToastProvider } from "@/components/ui/toast";
+import { SocketProvider } from "@/contexts/SocketContext";
 import "./globals.css";
 
 const inter = Inter({
@@ -33,9 +34,11 @@ export default function RootLayout({
     <html lang="es" className={`${inter.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col bg-[var(--sl-bg)] antialiased">
         <ThemeProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          <SocketProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </SocketProvider>
         </ThemeProvider>
       </body>
     </html>

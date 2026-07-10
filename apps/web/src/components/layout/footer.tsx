@@ -4,13 +4,17 @@ import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
 export function Footer() {
   return (
-    <footer className="border-t border-[var(--sl-border)] pt-16 pb-8" style={{ background: 'var(--sl-surface)' }}>
-      <div className="mx-auto max-w-7xl px-5 lg:px-8">
+    <footer className="relative border-t border-[var(--sl-border)] pt-16 pb-8 overflow-hidden" style={{ background: 'var(--sl-surface)' }}>
+      {/* Background pattern */}
+      <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--sl-text-primary) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+      <div className="absolute top-0 left-1/4 w-1/2 h-px bg-gradient-to-r from-transparent via-[var(--sl-primary)] to-transparent opacity-50" />
+      
+      <div className="relative mx-auto max-w-7xl px-5 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-12">
           {/* Brand & Info */}
-          <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-2.5 mb-4 inline-flex">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--sl-primary)] shadow-sm">
+          <div className="md:col-span-1 sl-animate-slide-up" style={{ animationDelay: '0ms' }}>
+            <Link href="/" className="flex items-center gap-2.5 mb-4 inline-flex group">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 shadow-sm transition-transform group-hover:scale-110 group-hover:rotate-6">
                 <Wrench className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold tracking-[-0.03em]" style={{ color: 'var(--sl-text-primary)' }}>
@@ -21,25 +25,26 @@ export function Footer() {
               La plataforma líder para encontrar profesionales de confianza en tu zona. Simplificamos la conexión entre talento local y necesidades del hogar.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-[var(--sl-text-muted)] hover:text-[var(--sl-primary)] transition-colors">
+              <a href="#" className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--sl-primary-muted)] text-[var(--sl-primary)] hover:bg-[var(--sl-primary)] hover:text-white hover:scale-110 hover:-translate-y-1 transition-all">
                 <FaFacebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-[var(--sl-text-muted)] hover:text-[var(--sl-primary)] transition-colors">
+              <a href="#" className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--sl-primary-muted)] text-[var(--sl-primary)] hover:bg-[var(--sl-primary)] hover:text-white hover:scale-110 hover:-translate-y-1 transition-all">
                 <FaTwitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-[var(--sl-text-muted)] hover:text-[var(--sl-primary)] transition-colors">
+              <a href="#" className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--sl-primary-muted)] text-[var(--sl-primary)] hover:bg-[var(--sl-primary)] hover:text-white hover:scale-110 hover:-translate-y-1 transition-all">
                 <FaInstagram className="h-5 w-5" />
               </a>
-              <a href="#" className="text-[var(--sl-text-muted)] hover:text-[var(--sl-primary)] transition-colors">
+              <a href="#" className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--sl-primary-muted)] text-[var(--sl-primary)] hover:bg-[var(--sl-primary)] hover:text-white hover:scale-110 hover:-translate-y-1 transition-all">
                 <FaLinkedin className="h-5 w-5" />
               </a>
             </div>
           </div>
 
           {/* Links 1 */}
-          <div>
+          <div className="sl-animate-slide-up" style={{ animationDelay: '100ms' }}>
             <h3 className="font-semibold mb-4" style={{ color: 'var(--sl-text-primary)' }}>Plataforma</h3>
             <ul className="space-y-3 text-sm" style={{ color: 'var(--sl-text-secondary)' }}>
+              <li><Link href="/servicios" className="hover:text-[var(--sl-primary)] transition-colors">Catálogo de servicios</Link></li>
               <li><Link href="/proveedores" className="hover:text-[var(--sl-primary)] transition-colors">Buscar proveedores</Link></li>
               <li><Link href="/sobre-nosotros" className="hover:text-[var(--sl-primary)] transition-colors">Cómo funciona</Link></li>
               <li><Link href="/registrarse" className="hover:text-[var(--sl-primary)] transition-colors">Únete como profesional</Link></li>
@@ -48,18 +53,18 @@ export function Footer() {
           </div>
 
           {/* Links 2 */}
-          <div>
+          <div className="sl-animate-slide-up" style={{ animationDelay: '200ms' }}>
             <h3 className="font-semibold mb-4" style={{ color: 'var(--sl-text-primary)' }}>Soporte</h3>
             <ul className="space-y-3 text-sm" style={{ color: 'var(--sl-text-secondary)' }}>
-              <li><Link href="/ayuda" className="hover:text-[var(--sl-primary)] transition-colors">Centro de ayuda</Link></li>
-              <li><Link href="/ayuda" className="hover:text-[var(--sl-primary)] transition-colors">Preguntas frecuentes</Link></li>
-              <li><Link href="/ayuda" className="hover:text-[var(--sl-primary)] transition-colors">Guías de seguridad</Link></li>
+              <li><Link href="/ayuda" className="hover:text-[var(--sl-primary)] transition-colors flex items-center gap-2 group"><span className="w-0 overflow-hidden group-hover:w-2 transition-all">&rarr;</span> Centro de ayuda</Link></li>
+              <li><Link href="/ayuda" className="hover:text-[var(--sl-primary)] transition-colors flex items-center gap-2 group"><span className="w-0 overflow-hidden group-hover:w-2 transition-all">&rarr;</span> Preguntas frecuentes</Link></li>
+              <li><Link href="/ayuda" className="hover:text-[var(--sl-primary)] transition-colors flex items-center gap-2 group"><span className="w-0 overflow-hidden group-hover:w-2 transition-all">&rarr;</span> Guías de seguridad</Link></li>
               <li><a href="mailto:soporte@servilocal.com" className="hover:text-[var(--sl-primary)] transition-colors flex items-center gap-2"><Mail className="h-4 w-4"/> Contacto</a></li>
             </ul>
           </div>
 
           {/* Links 3 */}
-          <div>
+          <div className="sl-animate-slide-up" style={{ animationDelay: '300ms' }}>
             <h3 className="font-semibold mb-4" style={{ color: 'var(--sl-text-primary)' }}>Legal</h3>
             <ul className="space-y-3 text-sm" style={{ color: 'var(--sl-text-secondary)' }}>
               <li><Link href="/terminos" className="hover:text-[var(--sl-primary)] transition-colors">Términos de servicio</Link></li>
@@ -70,13 +75,11 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-[var(--sl-border)] flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm" style={{ color: 'var(--sl-text-muted)' }}>
+        <div className="pt-8 relative flex flex-col md:flex-row justify-center items-center gap-4 sl-animate-slide-up" style={{ animationDelay: '400ms' }}>
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[var(--sl-border)] to-transparent" />
+          <p className="text-sm text-center" style={{ color: 'var(--sl-text-muted)' }}>
             © {new Date().getFullYear()} ServiLocal. Todos los derechos reservados.
           </p>
-          <div className="flex gap-6 text-sm" style={{ color: 'var(--sl-text-muted)' }}>
-            <span className="flex items-center gap-1">Hecho con <span className="text-red-500">❤</span> en Perú</span>
-          </div>
         </div>
       </div>
     </footer>

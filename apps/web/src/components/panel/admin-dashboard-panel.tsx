@@ -161,7 +161,7 @@ export function AdminDashboardPanel() {
   const [reportsFilter, setReportsFilter] = useState('PENDING');
 
   const apiFetch = async (path: string, opts: RequestInit = {}) => {
-    const method = opts.method?.toUpperCase() ?? 'GET';
+    const method = (opts.method || 'GET').toUpperCase();
     const body = opts.body ? JSON.parse(opts.body as string) : undefined;
     if (method === 'GET') return api.get(`/api${path}`);
     if (method === 'POST') return api.post(`/api${path}`, body);
@@ -414,7 +414,7 @@ export function AdminDashboardPanel() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {users.map((u) => (
+                    {(users || []).map((u) => (
                       <tr key={u.id} className="transition-colors hover:bg-slate-50/50">
                         <td className="px-6 py-4">
                           <p className="font-bold text-slate-900">{u.fullName}</p>
@@ -496,19 +496,31 @@ export function AdminDashboardPanel() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {requests.map((r) => (
+                    {(requests || []).map((r) => (
                       <tr key={r.id} className="transition-colors hover:bg-slate-50/50">
                         <td className="px-6 py-4 font-semibold text-slate-900">{r.serviceTitle}</td>
                         <td className="px-6 py-4">
-                          <p className="font-medium text-slate-800">{r.client.fullName}</p>
-                          <p className="text-xs text-slate-500">{r.client.email}</p>
+                          {r.client ? (
+                            <>
+                              <p className="font-medium text-slate-800">{r.client.fullName}</p>
+                              <p className="text-xs text-slate-500">{r.client.email}</p>
+                            </>
+                          ) : (
+                            <span className="text-xs text-slate-400">—</span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
-                          <p className="font-medium text-slate-800">{r.providerProfile.businessName}</p>
-                          <p className="text-xs text-slate-500">{r.providerProfile.user.fullName}</p>
+                          {r.providerProfile ? (
+                            <>
+                              <p className="font-medium text-slate-800">{r.providerProfile.businessName}</p>
+                              <p className="text-xs text-slate-500">{r.providerProfile.user?.fullName || 'Proveedor'}</p>
+                            </>
+                          ) : (
+                            <span className="text-xs text-slate-400">—</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-slate-500">
-                          {new Date(r.createdAt).toLocaleDateString()}
+                          {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ''}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <Badge className="border-slate-200 bg-slate-100 text-slate-700">{r.status}</Badge>
@@ -555,7 +567,7 @@ export function AdminDashboardPanel() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 sl-stagger">
-              {categories.map((cat) => (
+              {(categories || []).map((cat) => (
                 <div key={cat.id} className="sl-card flex flex-col justify-between p-5">
                   <div>
                     <div className="flex items-start justify-between">
@@ -595,7 +607,7 @@ export function AdminDashboardPanel() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {auditLogs.map((log) => (
+                    {(auditLogs || []).map((log) => (
                       <tr key={log.id} className="transition-colors hover:bg-slate-50/50">
                         <td className="whitespace-nowrap px-6 py-3 text-xs text-slate-500 font-medium">
                           {new Date(log.createdAt).toLocaleString('es-PE')}
@@ -676,7 +688,7 @@ export function AdminDashboardPanel() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {reports.map((r) => (
+                    {(reports || []).map((r) => (
                       <tr key={r.id} className="transition-colors hover:bg-slate-50/50">
                         <td className="px-6 py-4">
                           <p className="font-medium text-slate-800">{r.reporterUser.fullName}</p>
@@ -696,7 +708,7 @@ export function AdminDashboardPanel() {
                           )}
                         </td>
                         <td className="px-6 py-3 text-xs text-slate-500">
-                          {new Date(r.createdAt).toLocaleDateString('es-PE')}
+                          {r.createdAt ? new Date(r.createdAt).toLocaleDateString('es-PE') : ''}
                         </td>
                         {reportsFilter === 'PENDING' && (
                           <td className="px-6 py-4 text-right">

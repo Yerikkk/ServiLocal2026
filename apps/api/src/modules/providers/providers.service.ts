@@ -7,10 +7,11 @@ import {
 } from '@nestjs/common';
 import {
   ProviderProfile,
-  ServiceCategory,
   User,
   UserRole,
   UserStatus,
+  Category,
+  Prisma,
 } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { UpdateProviderProfileDto } from './dto/update-provider-profile.dto';
@@ -46,6 +47,8 @@ type PublicProvidersFilters = {
   zone?: string;
   verifiedOnly?: boolean;
   sort?: string;
+  page?: number;
+  limit?: number;
 };
 
 type PublicProviderItem = ReturnType<
@@ -62,33 +65,17 @@ export class ProvidersService {
     }
   }
 
-  private getCategoryLabel(category: ServiceCategory) {
-    const labels: Record<ServiceCategory, string> = {
-      ELECTRICIDAD: 'Electricidad',
-      PLOMERIA: 'Plomería',
-      LIMPIEZA: 'Limpieza',
-      CARPINTERIA: 'Carpintería',
-      PINTURA: 'Pintura',
-      JARDINERIA: 'Jardinería',
-      CERRAJERIA: 'Cerrajería',
-      AIRE_ACONDICIONADO: 'Aire acondicionado',
-      OTHER: 'Otro servicio',
-    };
-
-    return labels[category];
+  private getCategoryLabel(category?: Category | null) {
+    return category?.name || 'Otro servicio';
   }
 
   private getServiceName(
     providerProfile: Pick<
       ProviderProfile,
-      'category' | 'customServiceName' | 'specialty'
-    >,
+      'customServiceName' | 'specialty'
+    > & { category?: Category | null },
   ) {
-    if (providerProfile.category === ServiceCategory.OTHER) {
-      return providerProfile.customServiceName?.trim() || 'Otro servicio';
-    }
-
-    return this.getCategoryLabel(providerProfile.category);
+    return providerProfile.customServiceName?.trim() || this.getCategoryLabel(providerProfile.category) || 'Otro servicio';
   }
 
   private normalizeText(value?: string | null) {
@@ -108,8 +95,35 @@ export class ProvidersService {
       : 'trust_desc';
   }
 
-  private isValidCategory(category?: string): category is ServiceCategory {
-    return Object.values(ServiceCategory).includes(category as ServiceCategory);
+  private isValidCategory(category?: string): boolean {
+    return typeof category === 'string' && category.length > 0;
+  }
+
+  private normalizeCategoryFilter(category: string): string {
+    return category.trim().toLowerCase().replace(/_/g, '-');
+  }
+
+  private matchesCategoryFilter(
+    provider: Pick<PublicProviderItem, 'categoryId' | 'categorySlug'>,
+    filter: string,
+  ): boolean {
+    const normalized = filter.trim();
+    if (!normalized) return true;
+
+    if (provider.categoryId === normalized) return true;
+
+    const filterSlug = this.normalizeCategoryFilter(normalized);
+    const providerSlug = (provider.categorySlug ?? '').toLowerCase();
+    if (providerSlug && providerSlug === filterSlug) return true;
+
+    const legacyFromSlug = providerSlug
+      .toUpperCase()
+      .replace(/-/g, '_');
+    if (legacyFromSlug && legacyFromSlug === normalized.toUpperCase()) {
+      return true;
+    }
+
+    return false;
   }
 
   private buildTrustSummary(
@@ -118,7 +132,7 @@ export class ProvidersService {
       ProviderProfile,
       | 'ruc'
       | 'businessName'
-      | 'category'
+      | 'categoryId'
       | 'customServiceName'
       | 'specialty'
       | 'serviceZone'
@@ -130,10 +144,7 @@ export class ProvidersService {
     const hasDetailedDescription = descriptionLength >= 80;
     const hasAcceptableDescription = descriptionLength >= 30;
 
-    const hasServiceDetail =
-      providerProfile.category === ServiceCategory.OTHER
-        ? Boolean(providerProfile.customServiceName?.trim())
-        : Boolean(providerProfile.specialty?.trim());
+    const hasServiceDetail = Boolean(providerProfile.customServiceName?.trim()) || Boolean(providerProfile.specialty?.trim());
 
     const breakdown: TrustBreakdownItem[] = [
       {
@@ -171,9 +182,9 @@ export class ProvidersService {
       {
         key: 'category',
         label: 'Categoría principal',
-        points: providerProfile.category ? 10 : 0,
+        points: providerProfile.categoryId ? 10 : 0,
         maxPoints: 10,
-        completed: Boolean(providerProfile.category),
+        completed: Boolean(providerProfile.categoryId),
         guidance: 'Selecciona tu categoría principal.',
       },
       {
@@ -200,9 +211,7 @@ export class ProvidersService {
         maxPoints: 10,
         completed: hasServiceDetail,
         guidance:
-          providerProfile.category === ServiceCategory.OTHER
-            ? 'Especifica el nombre de tu servicio personalizado.'
-            : 'Agrega una especialidad o subcategoría para reforzar tu perfil.',
+          'Agrega una especialidad o nombre de servicio personalizado para reforzar tu perfil.',
       },
       {
         key: 'verification',
@@ -252,25 +261,31 @@ export class ProvidersService {
       ProviderProfile,
       | 'ruc'
       | 'businessName'
-      | 'category'
+      | 'categoryId'
       | 'customServiceName'
       | 'specialty'
       | 'serviceZone'
+      | 'latitude'
+      | 'longitude'
       | 'description'
       | 'isVerified'
       | 'updatedAt'
-    >,
+    > & { category?: Category | null },
   ) {
     return {
       providerId: user.id,
       responsibleName: user.fullName,
       phone: user.phone,
       businessName: providerProfile.businessName,
-      category: providerProfile.category,
+      categoryId: providerProfile.categoryId,
+      categorySlug: providerProfile.category?.slug ?? null,
+      categoryName: providerProfile.category?.name || null,
       serviceName: this.getServiceName(providerProfile),
       customServiceName: providerProfile.customServiceName,
       specialty: providerProfile.specialty,
       serviceZone: providerProfile.serviceZone,
+      latitude: providerProfile.latitude ? Number(providerProfile.latitude) : null,
+      longitude: providerProfile.longitude ? Number(providerProfile.longitude) : null,
       description: providerProfile.description,
       isVerified: providerProfile.isVerified,
       updatedAt: providerProfile.updatedAt,
@@ -290,7 +305,7 @@ export class ProvidersService {
     }
 
     if (filters.category && this.isValidCategory(filters.category)) {
-      if (provider.category !== filters.category) {
+      if (!this.matchesCategoryFilter(provider, filters.category)) {
         return false;
       }
     }
@@ -348,13 +363,79 @@ export class ProvidersService {
   }
 
   async listPublicProviders(filters: PublicProvidersFilters = {}) {
-    const users = await this.prisma.user.findMany({
-      where: {
-        role: UserRole.PROVIDER,
-        status: UserStatus.ACTIVE,
+    const where: Prisma.UserWhereInput = {
+      role: UserRole.PROVIDER,
+      status: UserStatus.ACTIVE,
+      providerProfile: {
+        isNot: null,
       },
+    };
+
+    const andConditions: Prisma.UserWhereInput[] = [];
+
+    if (filters.verifiedOnly) {
+      andConditions.push({
+        providerProfile: {
+          isVerified: true,
+        },
+      });
+    }
+
+    if (filters.category && this.isValidCategory(filters.category)) {
+      const normalizedCategory = filters.category.trim();
+      const filterSlug = this.normalizeCategoryFilter(normalizedCategory);
+      andConditions.push({
+        providerProfile: {
+          OR: [
+            { categoryId: normalizedCategory },
+            { category: { slug: filterSlug } },
+            { category: { slug: normalizedCategory.toLowerCase().replace(/_/g, '-') } },
+          ],
+        },
+      });
+    }
+
+    if (filters.zone) {
+      const normalizedZone = filters.zone.trim();
+      andConditions.push({
+        providerProfile: {
+          serviceZone: {
+            equals: normalizedZone,
+            mode: 'insensitive',
+          },
+        },
+      });
+    }
+
+    if (filters.search) {
+      const normalizedSearch = filters.search.trim();
+      andConditions.push({
+        OR: [
+          { fullName: { contains: normalizedSearch, mode: 'insensitive' } },
+          {
+            providerProfile: {
+              OR: [
+                { businessName: { contains: normalizedSearch, mode: 'insensitive' } },
+                { customServiceName: { contains: normalizedSearch, mode: 'insensitive' } },
+                { specialty: { contains: normalizedSearch, mode: 'insensitive' } },
+                { serviceZone: { contains: normalizedSearch, mode: 'insensitive' } },
+                { description: { contains: normalizedSearch, mode: 'insensitive' } },
+                { category: { name: { contains: normalizedSearch, mode: 'insensitive' } } },
+              ],
+            },
+          },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
+
+    const users = await this.prisma.user.findMany({
+      where,
       include: {
-        providerProfile: true,
+        providerProfile: { include: { category: true } },
       },
     });
 
@@ -362,18 +443,23 @@ export class ProvidersService {
       .filter((user) => Boolean(user.providerProfile))
       .map((user) => this.serializePublicProvider(user, user.providerProfile!));
 
-    const filteredProviders = serializedProviders.filter((provider) =>
-      this.matchesPublicFilters(provider, filters),
-    );
-
     const sortedProviders = this.sortPublicProviders(
-      filteredProviders,
+      serializedProviders,
       this.normalizeSort(filters.sort),
     );
 
+    const page = Math.max(1, filters.page ?? 1);
+    const limit = Math.min(50, Math.max(1, filters.limit ?? 20));
+    const startIndex = (page - 1) * limit;
+    
+    const paginatedItems = sortedProviders.slice(startIndex, startIndex + limit);
+
     return {
       total: sortedProviders.length,
-      items: sortedProviders,
+      page,
+      limit,
+      totalPages: Math.ceil(sortedProviders.length / limit),
+      items: paginatedItems,
     };
   }
 
@@ -385,7 +471,7 @@ export class ProvidersService {
         status: UserStatus.ACTIVE,
       },
       include: {
-        providerProfile: true,
+        providerProfile: { include: { category: true } },
       },
     });
 
@@ -423,7 +509,7 @@ export class ProvidersService {
         id: userId,
       },
       include: {
-        providerProfile: true,
+        providerProfile: { include: { category: true } },
       },
     });
 
@@ -444,10 +530,13 @@ export class ProvidersService {
         id: user.providerProfile.id,
         ruc: user.providerProfile.ruc,
         businessName: user.providerProfile.businessName,
-        category: user.providerProfile.category,
+        categoryId: user.providerProfile.categoryId,
+        categoryName: user.providerProfile.category?.name || null,
         customServiceName: user.providerProfile.customServiceName,
         specialty: user.providerProfile.specialty,
         serviceZone: user.providerProfile.serviceZone,
+        latitude: user.providerProfile.latitude ? Number(user.providerProfile.latitude) : null,
+        longitude: user.providerProfile.longitude ? Number(user.providerProfile.longitude) : null,
         description: user.providerProfile.description,
         isVerified: user.providerProfile.isVerified,
         createdAt: user.providerProfile.createdAt,
@@ -464,21 +553,12 @@ export class ProvidersService {
   ) {
     this.ensureProviderRole(role);
 
-    if (
-      updateProviderProfileDto.category === ServiceCategory.OTHER &&
-      !updateProviderProfileDto.customServiceName?.trim()
-    ) {
-      throw new BadRequestException(
-        'Debes indicar el nombre del servicio cuando eliges "Otro servicio"',
-      );
-    }
-
     const currentUser = await this.prisma.user.findUnique({
       where: {
         id: userId,
       },
       include: {
-        providerProfile: true,
+        providerProfile: { include: { category: true } },
       },
     });
 
@@ -508,15 +588,15 @@ export class ProvidersService {
       data: {
         ruc: updateProviderProfileDto.ruc,
         businessName: updateProviderProfileDto.businessName,
-        category: updateProviderProfileDto.category,
-        customServiceName:
-          updateProviderProfileDto.category === ServiceCategory.OTHER
-            ? (updateProviderProfileDto.customServiceName?.trim() ?? null)
-            : null,
+        categoryId: updateProviderProfileDto.category,
+        customServiceName: updateProviderProfileDto.customServiceName?.trim() ?? null,
         specialty: updateProviderProfileDto.specialty?.trim() ?? null,
         serviceZone: updateProviderProfileDto.serviceZone,
+        latitude: updateProviderProfileDto.latitude ?? null,
+        longitude: updateProviderProfileDto.longitude ?? null,
         description: updateProviderProfileDto.description,
       },
+      include: { category: true },
     });
 
     await this.prisma.auditLog.create({
@@ -524,7 +604,7 @@ export class ProvidersService {
         actorUserId: userId,
         action: 'PROVIDER_PROFILE_UPDATED',
         metadata: {
-          category: updatedProfile.category,
+          categoryId: updatedProfile.categoryId,
           customServiceName: updatedProfile.customServiceName,
           serviceZone: updatedProfile.serviceZone,
         },
@@ -537,10 +617,13 @@ export class ProvidersService {
         id: updatedProfile.id,
         ruc: updatedProfile.ruc,
         businessName: updatedProfile.businessName,
-        category: updatedProfile.category,
+        categoryId: updatedProfile.categoryId,
+        categoryName: updatedProfile.category?.name || null,
         customServiceName: updatedProfile.customServiceName,
         specialty: updatedProfile.specialty,
         serviceZone: updatedProfile.serviceZone,
+        latitude: updatedProfile.latitude ? Number(updatedProfile.latitude) : null,
+        longitude: updatedProfile.longitude ? Number(updatedProfile.longitude) : null,
         description: updatedProfile.description,
         isVerified: updatedProfile.isVerified,
         createdAt: updatedProfile.createdAt,
@@ -556,10 +639,10 @@ export class ProvidersService {
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Obtener todas las solicitudes del proveedor
+    // Obtener todas las solicitudes del proveedor (incluyendo el título para estimar ganancias)
     const allRequests = await this.prisma.serviceRequest.findMany({
       where: { providerUserId: userId },
-      select: { id: true, status: true, createdAt: true },
+      select: { id: true, status: true, createdAt: true, serviceTitle: true },
     });
 
     const completed = allRequests.filter((r) => r.status === 'COMPLETED');
@@ -569,6 +652,38 @@ export class ProvidersService {
     const completedThisMonth = completed.filter(
       (r) => new Date(r.createdAt) >= firstDayOfMonth,
     );
+
+    // Obtener catálogo de servicios del proveedor para estimar ingresos reales
+    const providerServices = await this.prisma.service.findMany({
+      where: { providerUserId: userId, isActive: true },
+      select: { name: true, referencePrice: true },
+    });
+
+    const prices = providerServices
+      .map((s) => (s.referencePrice ? Number(s.referencePrice) : 0))
+      .filter((p) => p > 0);
+
+    const avgPrice =
+      prices.length > 0
+        ? prices.reduce((a, b) => a + b, 0) / prices.length
+        : 50; // Fallback a 50 PEN si no tiene servicios configurados
+
+    // Estimar ganancias de solicitudes completadas este mes
+    let totalEarningsEstimate = 0;
+    for (const req of completedThisMonth) {
+      const matchedService = providerServices.find(
+        (s) => s.name.trim().toLowerCase() === req.serviceTitle.trim().toLowerCase(),
+      );
+      if (matchedService && matchedService.referencePrice) {
+        totalEarningsEstimate += Number(matchedService.referencePrice);
+      } else {
+        totalEarningsEstimate += avgPrice;
+      }
+    }
+
+    // 10% de comisión estimada para el plan FREE
+    const commissionsEstimate = Math.round(totalEarningsEstimate * 0.10 * 100) / 100;
+    totalEarningsEstimate = Math.round(totalEarningsEstimate * 100) / 100;
 
     // Breakdown mensual de los últimos 6 meses
     const monthlyBreakdown: { month: string; label: string; completed: number }[] = [];
@@ -587,8 +702,8 @@ export class ProvidersService {
     return {
       currentMonth: {
         completed: completedThisMonth.length,
-        totalEarningsEstimate: 0,
-        commissionsEstimate: 0,
+        totalEarningsEstimate,
+        commissionsEstimate,
       },
       allTime: {
         totalCompleted: completed.length,

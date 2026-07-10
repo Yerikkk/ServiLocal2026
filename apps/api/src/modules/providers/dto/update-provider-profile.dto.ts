@@ -1,13 +1,11 @@
 import { Transform } from 'class-transformer';
 import {
-  IsEnum,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
   MinLength,
-  ValidateIf,
 } from 'class-validator';
-import { ServiceCategory } from '@prisma/client';
 
 function trimValue(value: unknown) {
   return typeof value === 'string' ? value.trim() : value;
@@ -32,10 +30,10 @@ export class UpdateProviderProfileDto {
   @Transform(({ value }) => trimValue(value))
   businessName!: string;
 
-  @IsEnum(ServiceCategory)
-  category!: ServiceCategory;
+  @IsString()
+  category!: string;
 
-  @ValidateIf((o) => o.category === ServiceCategory.OTHER)
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(120)
@@ -53,6 +51,14 @@ export class UpdateProviderProfileDto {
   @MaxLength(120)
   @Transform(({ value }) => trimValue(value))
   serviceZone!: string;
+
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
 
   @IsString()
   @MinLength(10)

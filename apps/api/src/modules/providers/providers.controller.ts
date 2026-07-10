@@ -6,7 +6,9 @@ import {
   Patch,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { UpdateProviderProfileDto } from './dto/update-provider-profile.dto';
@@ -16,6 +18,7 @@ import { ProvidersService } from './providers.service';
 export class ProvidersController {
   constructor(private readonly providersService: ProvidersService) {}
 
+  @UseInterceptors(CacheInterceptor)
   @Get('public')
   async listPublic(
     @Query('search') search?: string,
@@ -23,6 +26,8 @@ export class ProvidersController {
     @Query('zone') zone?: string,
     @Query('verifiedOnly') verifiedOnly?: string,
     @Query('sort') sort?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
     return this.providersService.listPublicProviders({
       search,
@@ -30,6 +35,8 @@ export class ProvidersController {
       zone,
       verifiedOnly: verifiedOnly === 'true',
       sort,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
     });
   }
 

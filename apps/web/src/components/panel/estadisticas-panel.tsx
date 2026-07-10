@@ -55,6 +55,7 @@ type RequestsResponse = { items: ProviderRequest[]; total: number };
 /* ─── Helpers ───────────────────────────────────── */
 
 function formatDate(iso: string) {
+  if (!iso) return '';
   return new Date(iso).toLocaleDateString('es-PE', {
     day: 'numeric', month: 'short', year: 'numeric',
   });
@@ -123,12 +124,12 @@ export function EstadisticasPanel() {
   useEffect(() => { if (user) loadData(); }, [user, loadData]);
 
   /* ── Stats derivation ───────────────────────── */
-  const completed  = requests.filter((r) => r.status === 'COMPLETED').length;
-  const pending    = requests.filter((r) => r.status === 'PENDING').length;
-  const accepted   = requests.filter((r) => r.status === 'ACCEPTED').length;
-  const cancelled  = requests.filter((r) => r.status === 'CANCELLED').length;
-  const expired    = requests.filter((r) => r.status === 'EXPIRED').length;
-  const total      = requests.length;
+  const completed  = (requests || []).filter((r) => r.status === 'COMPLETED').length;
+  const pending    = (requests || []).filter((r) => r.status === 'PENDING').length;
+  const accepted   = (requests || []).filter((r) => r.status === 'ACCEPTED').length;
+  const cancelled  = (requests || []).filter((r) => r.status === 'CANCELLED').length;
+  const expired    = (requests || []).filter((r) => r.status === 'EXPIRED').length;
+  const total      = (requests || []).length;
   const successRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   /* ── Skeleton ───────────────────────────────── */
@@ -246,14 +247,14 @@ export function EstadisticasPanel() {
         )}
 
         {/* ── Recent trust events ──────────────── */}
-        {trust && trust.recentEvents.length > 0 && (
+        {trust && (trust.recentEvents || []).length > 0 && (
           <section>
             <h2 className="text-base font-extrabold mb-4" style={{ color: 'var(--sl-text-primary)' }}>
               Actividad de confianza reciente
             </h2>
             <div className="overflow-hidden rounded-2xl border border-[var(--sl-border)]"
               style={{ background: 'var(--sl-surface)' }}>
-              {trust.recentEvents.map((ev, idx) => {
+              {(trust.recentEvents || []).map((ev, idx) => {
                 const cfg = EVENT_CONFIG[ev.eventType] ?? {
                   label: ev.eventType, icon: Star, color: '#64748b'
                 };

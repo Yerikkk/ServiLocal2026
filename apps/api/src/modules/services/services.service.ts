@@ -38,6 +38,7 @@ export class ServicesService {
           ? new Prisma.Decimal(dto.referencePrice)
           : null,
         estimatedTime: dto.estimatedTime?.trim() ?? null,
+        imageUrl: dto.imageUrl?.trim() ?? null,
       },
       include: {
         category: { select: { id: true, name: true } },
@@ -53,7 +54,7 @@ export class ServicesService {
     const services = await this.prisma.service.findMany({
       where: { providerUserId: userId },
       include: {
-        category: { select: { id: true, name: true } },
+        category: { select: { id: true, name: true, slug: true } },
         _count: { select: { favorites: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -101,12 +102,15 @@ export class ServicesService {
     if (dto.estimatedTime !== undefined)
       data.estimatedTime = dto.estimatedTime?.trim() ?? null;
     if (dto.isActive !== undefined) data.isActive = dto.isActive;
+    if (dto.imageUrl !== undefined) {
+      data.imageUrl = dto.imageUrl?.trim() ?? null;
+    }
 
     const updated = await this.prisma.service.update({
       where: { id: serviceId },
       data,
       include: {
-        category: { select: { id: true, name: true } },
+        category: { select: { id: true, name: true, slug: true } },
       },
     });
 
@@ -141,7 +145,7 @@ export class ServicesService {
       this.prisma.service.findMany({
         where,
         include: {
-          category: { select: { id: true, name: true } },
+          category: { select: { id: true, name: true, slug: true } },
           providerUser: {
             select: {
               id: true,
@@ -170,6 +174,7 @@ export class ServicesService {
         description: s.description,
         referencePrice: s.referencePrice,
         estimatedTime: s.estimatedTime,
+        imageUrl: s.imageUrl,
         category: s.category,
         provider: {
           id: s.providerUser.id,

@@ -101,7 +101,7 @@ export function SettingsPanel({ rolePath }: { rolePath: 'cliente' | 'proveedor' 
 
   if (loading || !user) {
     return (
-      <DashboardShell role={rolePath.toUpperCase() as any} userName="Cargando..." userEmail="">
+      <DashboardShell role={(rolePath || '').toUpperCase() as any} userName="Cargando..." userEmail="">
         <SkeletonDashboard />
       </DashboardShell>
     );

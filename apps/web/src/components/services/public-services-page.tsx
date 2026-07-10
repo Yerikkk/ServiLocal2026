@@ -34,8 +34,7 @@ import { KPICard } from '@/components/ui/kpi-card';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { VerifiedBadge } from '@/components/ui/badge';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiUrl } from '@/lib/api-url';
 
 /* ─── Types ──────────────────────────────────────────── */
 
@@ -96,7 +95,8 @@ const categoryIconMap: Record<string, { icon: React.ElementType; color: string }
   aire_acondicionado: { icon: Wind, color: '#06b6d4' },
 };
 
-function getCategoryDisplay(slug: string) {
+function getCategoryDisplay(slug?: string | null) {
+  if (!slug?.trim()) return { icon: Wrench, color: '#64748b' };
   const key = slug.toLowerCase().replace(/-/g, '_');
   return categoryIconMap[key] ?? { icon: Wrench, color: '#64748b' };
 }
@@ -154,21 +154,37 @@ export function PublicServicesPage() {
     if (nextUrl !== currentPath) router.replace(nextUrl, { scroll: false });
   }, [debouncedSearch, categoryId, page, pathname, router]);
 
-  // Load categories once
+  // Load categories once (cache en sesión para cargas más rápidas)
   useEffect(() => {
+    const CACHE_KEY = 'sl_categories_v1';
+
     async function loadCats() {
       try {
-        const res = await fetch(`${API_URL}/api/services/categories`, { cache: 'no-store' });
+        if (typeof sessionStorage !== 'undefined') {
+          const cached = sessionStorage.getItem(CACHE_KEY);
+          if (cached) {
+            const parsed = JSON.parse(cached) as CategoryApiItem[];
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setCategories(parsed);
+              setCatLoading(false);
+            }
+          }
+        }
+
+        const res = await fetch(apiUrl('/api/services/categories'), { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           const rawItems: CategoryApiItem[] = data.items ?? data ?? [];
           setCategories(rawItems);
+          if (typeof sessionStorage !== 'undefined' && rawItems.length > 0) {
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(rawItems));
+          }
         }
       } finally {
         setCatLoading(false);
       }
     }
-    loadCats();
+    loadCats().catch((err) => console.error('Failed to load categories:', err));
   }, []);
 
   // Load services on filter change
@@ -182,17 +198,35 @@ export function PublicServicesPage() {
       params.set('page', String(page));
       params.set('limit', String(PAGE_SIZE));
 
-      const res = await fetch(
-        `${API_URL}/api/services/public?${params}`,
-        { cache: 'no-store' }
-      );
-      if (!res.ok) throw new Error('Error al cargar el catálogo de servicios');
+      const res = await fetch(apiUrl(`/api/services/public?${params}`), {
+        cache: 'no-store',
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        const detail =
+          typeof body?.message === 'string'
+            ? body.message
+            : `Error ${res.status} al cargar el catálogo`;
+        if (res.status === 404) {
+          throw new Error(
+            'No se encontró el servicio de catálogo. Verifica que la API esté en ejecución (puerto 3001).',
+          );
+        }
+        throw new Error(detail);
+      }
       const data: PublicServicesResponse = await res.json();
       setServices(data.items ?? []);
       setTotal(data.total ?? 0);
       setTotalPages(data.totalPages ?? Math.ceil((data.total ?? 0) / PAGE_SIZE));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error de carga');
+      const message =
+        err instanceof TypeError && /fetch|network/i.test(err.message)
+          ? 'No se pudo conectar con el servidor. Asegúrate de tener la API activa (pnpm dev:api) y Docker con PostgreSQL.'
+          : err instanceof Error
+            ? err.message
+            : 'Error de carga';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -336,7 +370,7 @@ export function PublicServicesPage() {
                   Todas
                 </button>
 
-                {categories.map((cat) => {
+                {(categories || []).map((cat) => {
                   const catDisplay = getCategoryDisplay(cat.slug);
                   const Icon = catDisplay.icon;
                   const active = categoryId === cat.id;
@@ -443,31 +477,34 @@ export function PublicServicesPage() {
             />
           ) : (
             <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 sl-stagger">
-              {services.map((service) => {
-                const catDisplay = getCategoryDisplay(service.category.slug);
+              {(services || []).map((service) => {
+                const catDisplay = getCategoryDisplay(service.category?.slug);
                 const CatIcon = catDisplay.icon;
                 // Backend public listing doesn't expose trustScore; use a placeholder
-                const trust = { label: service.provider.isVerified ? 'Verificado' : 'Activo', color: service.provider.isVerified ? '#10b981' : '#64748b' };
+                const trust = { label: service.provider?.isVerified ? 'Verificado' : 'Activo', color: service.provider?.isVerified ? '#10b981' : '#64748b' };
                 const provider = service.provider;
 
                 return (
                   <article
                     key={service.id}
-                    className="sl-card-premium flex flex-col group cursor-pointer"
+                    className="sl-card-premium sl-glass-premium flex flex-col group cursor-pointer hover:scale-[1.02] hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
                   >
+                    {/* Hover glow effect background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0 pointer-events-none" />
+                    
                     {/* Card header */}
-                    <div className="p-6 pb-4 flex-1 flex flex-col">
+                    <div className="p-6 pb-4 flex-1 flex flex-col relative z-10">
                       {/* Category badge + verified */}
                       <div className="flex items-center justify-between mb-4">
                         <div
-                          className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold"
+                          className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition-transform group-hover:scale-105"
                           style={{
                             backgroundColor: `${catDisplay.color}18`,
                             color: catDisplay.color,
                           }}
                         >
                           <CatIcon className="h-3.5 w-3.5" />
-                          {service.category.name}
+                          {service.category?.name || 'Servicio'}
                         </div>
                         {provider.isVerified && <VerifiedBadge />}
                       </div>
@@ -527,7 +564,7 @@ export function PublicServicesPage() {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--sl-primary)] text-white text-sm font-bold shadow-sm group-hover/prov:scale-105 transition-transform">
-                          {provider.name.charAt(0).toUpperCase()}
+                          {provider.name?.charAt(0)?.toUpperCase() || '?'}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-bold group-hover/prov:text-[var(--sl-primary)] transition-colors" style={{ color: 'var(--sl-text-primary)' }}>
@@ -619,9 +656,9 @@ export function PublicServicesPage() {
 
           {/* ── Bottom CTA ───────────────────────────── */}
           <section className="rounded-3xl overflow-hidden relative bg-gradient-to-br from-[var(--sl-primary)] via-[#1598d0] to-[#0d7fb3] p-8 md:p-12 text-center text-white mt-8">
-            <div className="pointer-events-none absolute inset-0 opacity-10">
-              <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white" />
-              <div className="absolute -left-8 bottom-0 h-40 w-40 rounded-full bg-white" />
+            <div className="pointer-events-none absolute inset-0 opacity-20">
+              <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white blur-3xl animate-pulse" />
+              <div className="absolute -left-8 bottom-0 h-40 w-40 rounded-full bg-white blur-2xl animate-pulse" style={{ animationDelay: '2s' }} />
             </div>
             <div className="relative">
               <h2 className="text-2xl font-extrabold md:text-3xl">

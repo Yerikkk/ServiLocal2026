@@ -445,6 +445,40 @@ body {
 .sl-animate-progress { animation: sl-progress-fill 1.2s var(--sl-ease) both; }
 .sl-animate-border-glow { animation: sl-border-glow 3s ease-in-out infinite; }
 
+/* ─── NEW Premium Animations ───────────────────────────────── */
+
+@keyframes sl-float-3d {
+  0%, 100% { transform: translateY(0) rotateX(0) rotateY(0); }
+  50% { transform: translateY(-8px) rotateX(2deg) rotateY(-2deg); }
+}
+
+@keyframes sl-gradient-text-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes sl-particle-drift {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  100% { transform: translate(100px, -100px) rotate(360deg); opacity: 0; }
+}
+
+@keyframes sl-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.sl-animate-float-3d { animation: sl-float-3d 4s ease-in-out infinite; }
+.sl-animate-gradient-text { 
+  background-size: 200% auto;
+  animation: sl-gradient-text-shift 4s linear infinite; 
+}
+.sl-animate-wiggle:hover { animation: sl-wiggle 0.5s ease-in-out; }
+
+
 /* Extended stagger for larger grids */
 .sl-stagger > *:nth-child(9) { animation-delay: 480ms; }
 .sl-stagger > *:nth-child(10) { animation-delay: 540ms; }
@@ -486,6 +520,28 @@ body {
 
 .sl-card-premium:hover::before {
   opacity: 1;
+}
+
+.sl-card-3d {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transition: transform 0.5s var(--sl-ease), box-shadow 0.5s var(--sl-ease);
+}
+.sl-card-3d:hover {
+  transform: translateY(-5px) rotateX(2deg) rotateY(-2deg);
+  box-shadow: var(--sl-shadow-xl);
+}
+
+.sl-glass-premium {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+.dark .sl-glass-premium {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ─── Status Glow Badges ──────────────────────────────────── */

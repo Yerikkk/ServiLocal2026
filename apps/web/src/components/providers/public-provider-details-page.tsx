@@ -9,14 +9,18 @@ import {
   ArrowLeft,
   BadgeCheck,
   Briefcase,
+  Flag,
   MapPin,
   Phone,
   ShieldCheck,
   User,
   Wrench,
 } from 'lucide-react';
+import { ReportModal } from '@/components/ui/report-modal';
+import { DynamicMap } from '@/components/ui/dynamic-map';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiUrl } from '@/lib/api-url';
+import { getProviderCategoryLabel } from '@/lib/provider-display';
 
 type TrustBreakdownItem = {
   key: string;
@@ -39,16 +43,11 @@ type PublicProvider = {
   responsibleName: string;
   phone?: string | null;
   businessName: string;
-  category:
-    | 'ELECTRICIDAD'
-    | 'PLOMERIA'
-    | 'LIMPIEZA'
-    | 'CARPINTERIA'
-    | 'PINTURA'
-    | 'JARDINERIA'
-    | 'CERRAJERIA'
-    | 'AIRE_ACONDICIONADO'
-    | 'OTHER';
+  categoryId?: string;
+  categorySlug?: string | null;
+  categoryName?: string | null;
+  category?: string | null;
+  serviceName?: string;
   customServiceName?: string | null;
   specialty?: string | null;
   serviceZone: string;
@@ -56,26 +55,38 @@ type PublicProvider = {
   isVerified: boolean;
   updatedAt: string;
   trustSummary: TrustSummary;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
-const categoryLabels: Record<PublicProvider['category'], string> = {
-  ELECTRICIDAD: 'Electricidad',
-  PLOMERIA: 'Plomería',
-  LIMPIEZA: 'Limpieza',
-  CARPINTERIA: 'Carpintería',
-  PINTURA: 'Pintura',
-  JARDINERIA: 'Jardinería',
-  CERRAJERIA: 'Cerrajería',
-  AIRE_ACONDICIONADO: 'Aire acondicionado',
-  OTHER: 'Otro servicio',
-};
+function isCustomServiceCategory(provider: PublicProvider): boolean {
+  const slug = provider.categorySlug?.toLowerCase();
+  const legacy = provider.category?.toUpperCase();
+  return slug === 'otro-servicio' || legacy === 'OTHER';
+}
 
 function getServiceName(provider: PublicProvider) {
-  if (provider.category === 'OTHER') {
-    return provider.customServiceName?.trim() || 'Servicio personalizado';
+  if (isCustomServiceCategory(provider)) {
+    return provider.customServiceName?.trim() || provider.serviceName?.trim() || 'Servicio personalizado';
   }
-  return categoryLabels[provider.category];
+  return getProviderCategoryLabel(provider);
 }
+
+type ReviewItem = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  clientName: string;
+  serviceTitle: string;
+};
+
+type ReviewsResponse = {
+  avgRating: number;
+  total: number;
+  distribution: Array<{ stars: number; count: number; percentage: number }>;
+  items: ReviewItem[];
+};
 
 export function PublicProviderDetailsPage() {
   const params = useParams<{ providerId: string }>();
@@ -83,13 +94,34 @@ export function PublicProviderDetailsPage() {
   const providerId = params?.providerId;
 
   const [provider, setProvider] = useState<PublicProvider | null>(null);
+  const [reviews, setReviews] = useState<ReviewsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const trustBarWidth = useMemo(
     () => `${Math.max(0, Math.min(100, provider?.trustSummary.score ?? 0))}%`,
     [provider],
   );
+
+  const mapLocation = useMemo(() => {
+    if (!provider) return [];
+    
+    // Use actual coordinates if available, otherwise default to Talara center
+    let lat = provider.latitude ?? -4.5772;
+    let lng = provider.longitude ?? -81.2719;
+    
+    return [
+      {
+        id: provider.providerId,
+        lat,
+        lng,
+        title: provider.businessName,
+        description: `${provider.serviceZone} - ${provider.trustSummary.levelLabel}`
+      }
+    ];
+  }, [provider]);
 
   useEffect(() => {
     let ignore = false;
@@ -103,13 +135,10 @@ export function PublicProviderDetailsPage() {
           throw new Error('Proveedor no encontrado');
         }
 
-        const response = await fetch(
-          `${API_URL}/api/providers/public/${providerId}`,
-          {
-            method: 'GET',
-            cache: 'no-store',
-          },
-        );
+        const response = await fetch(apiUrl(`/api/providers/public/${providerId}`), {
+          method: 'GET',
+          cache: 'no-store',
+        });
 
         if (response.status === 404) {
           router.replace('/proveedores');
@@ -125,6 +154,9 @@ export function PublicProviderDetailsPage() {
         if (!ignore) {
           setProvider(data);
         }
+
+        // Cargar reseñas
+        loadReviews();
       } catch (err) {
         if (!ignore) {
           setError(
@@ -137,6 +169,24 @@ export function PublicProviderDetailsPage() {
         if (!ignore) {
           setLoading(false);
         }
+      }
+    }
+
+    async function loadReviews() {
+      if (!providerId) return;
+      try {
+        setReviewsLoading(true);
+        const res = await fetch(apiUrl(`/api/reviews/provider/${providerId}`), {
+          method: 'GET',
+          cache: 'no-store',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (!ignore) setReviews(data);
+        }
+      } catch { /* ignore */ }
+      finally {
+        if (!ignore) setReviewsLoading(false);
       }
     }
 
@@ -178,13 +228,24 @@ export function PublicProviderDetailsPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-8 md:px-8 lg:px-10">
       <div className="mx-auto max-w-6xl space-y-8">
-        <button
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-[0.98rem] text-slate-500 transition hover:text-slate-900"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver al directorio
-        </button>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 text-[0.98rem] text-slate-500 transition hover:text-slate-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al directorio
+          </button>
+          
+          <button
+            onClick={() => setIsReportModalOpen(true)}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-red-600"
+            title="Reportar proveedor"
+          >
+            <Flag className="h-4 w-4" />
+            Reportar
+          </button>
+        </div>
 
         {/* Header Section */}
         <section className="overflow-hidden rounded-[34px] bg-[#1EA8E7] text-white shadow-[0_20px_60px_rgba(30,168,231,0.18)]">
@@ -219,28 +280,36 @@ export function PublicProviderDetailsPage() {
         </section>
 
         {/* Info Cards Grid */}
-        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          <InfoCard
-            icon={<User className="h-6 w-6" />}
-            label="Responsable"
-            value={provider.responsibleName}
-          />
-          <InfoCard
-            icon={<Phone className="h-6 w-6" />}
-            label="Teléfono"
-            value={provider.phone || 'No disponible'}
-          />
-          <InfoCard
-            icon={<MapPin className="h-6 w-6" />}
-            label="Zona"
-            value={provider.serviceZone}
-          />
-          <InfoCard
-            icon={<Briefcase className="h-6 w-6" />}
-            label="Especialidad"
-            value={provider.specialty?.trim() || 'Sin especialidad definida'}
-          />
-        </section>
+          <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <InfoCard
+              icon={<User className="h-6 w-6" />}
+              label="Responsable"
+              value={provider.responsibleName}
+            />
+            <InfoCard
+              icon={<Phone className="h-6 w-6" />}
+              label="Teléfono"
+              value={provider.phone || 'No disponible'}
+            />
+            <InfoCard
+              icon={<MapPin className="h-6 w-6" />}
+              label="Zona"
+              value={provider.serviceZone}
+            />
+            <InfoCard
+              icon={<Briefcase className="h-6 w-6" />}
+              label="Especialidad"
+              value={provider.specialty?.trim() || 'Sin especialidad definida'}
+            />
+          </section>
+
+          {/* Map Section */}
+          <section className="sl-card p-6 rounded-3xl shadow-sm border border-[var(--sl-border)]">
+            <h2 className="text-xl font-bold tracking-tight mb-4" style={{ color: 'var(--sl-text-primary)' }}>
+              Ubicación
+            </h2>
+            <DynamicMap locations={mapLocation} height="400px" className="rounded-2xl" />
+          </section>
 
         {/* Details and Sidebar Grid */}
         <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
@@ -253,11 +322,11 @@ export function PublicProviderDetailsPage() {
               <div className="rounded-[20px] bg-slate-50 px-5 py-4">
                 <p className="text-sm font-medium text-slate-400">Categoría</p>
                 <p className="mt-2 text-lg font-semibold text-slate-950">
-                  {categoryLabels[provider.category]}
+                  {getProviderCategoryLabel(provider)}
                 </p>
               </div>
 
-              {provider.category === 'OTHER' && provider.customServiceName ? (
+              {isCustomServiceCategory(provider) && provider.customServiceName ? (
                 <div className="rounded-[20px] bg-slate-50 px-5 py-4">
                   <p className="text-sm font-medium text-slate-400">
                     Servicio personalizado
@@ -307,7 +376,7 @@ export function PublicProviderDetailsPage() {
               </div>
 
               <div className="mt-5 space-y-3">
-                {provider.trustSummary.breakdown.map((item) => (
+                {(provider.trustSummary?.breakdown || []).map((item) => (
                   <div
                     key={item.key}
                     className="rounded-[18px] bg-slate-50 px-4 py-3"
@@ -323,14 +392,78 @@ export function PublicProviderDetailsPage() {
               </div>
             </div>
 
+            {/* Sección de Reseñas */}
             <div className="rounded-[30px] border border-slate-200 bg-white p-7 shadow-sm">
               <h2 className="text-2xl font-bold tracking-[-0.04em] text-slate-950">
-                Próximamente
+                Reseñas
               </h2>
-              <p className="mt-4 leading-8 text-slate-600">
-                Aquí conectaremos reseñas, historial de trabajos y más señales
-                reales para fortalecer la confianza del proveedor.
-              </p>
+              
+              {reviewsLoading ? (
+                <div className="mt-4 space-y-3">
+                  {[1,2,3].map((i) => (
+                    <div key={i} className="rounded-[18px] bg-slate-50 px-4 py-3">
+                      <div className="h-4 bg-slate-200 rounded w-1/2 mb-2" />
+                      <div className="h-3 bg-slate-200 rounded w-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : reviews && reviews.total > 0 ? (
+                <div className="mt-4 space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="text-4xl font-extrabold text-slate-950">
+                      {reviews.avgRating.toFixed(1)}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1 text-amber-400">
+                        {[1,2,3,4,5].map((star) => (
+                          <span key={star}>
+                            {star <= Math.round(reviews.avgRating) ? '★' : '☆'}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-sm text-slate-500 mt-1">
+                        {reviews.total} {reviews.total === 1 ? 'reseña' : 'reseñas'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 space-y-3">
+                    {(reviews.items || []).slice(0, 3).map((review) => (
+                      <div key={review.id} className="rounded-[18px] bg-slate-50 px-4 py-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <p className="font-semibold text-slate-900">{review.clientName}</p>
+                          <div className="flex items-center gap-1 text-amber-400 text-sm">
+                            {[1,2,3,4,5].map((star) => (
+                              <span key={star}>
+                                {star <= review.rating ? '★' : '☆'}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {review.createdAt ? new Date(review.createdAt).toLocaleDateString('es-PE', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          }) : ''} • {review.serviceTitle}
+                        </p>
+                        {review.comment && (
+                          <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+                            {review.comment}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <p className="text-slate-500">Aún no hay reseñas.</p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Sé el primero en contratar y calificar a este proveedor!
+                  </p>
+                </div>
+              )}
             </div>
           </aside>
         </section>
@@ -344,6 +477,13 @@ export function PublicProviderDetailsPage() {
             defaultZone={provider.serviceZone}
           />
         </section>
+
+        <ReportModal
+          open={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          reportedUserId={provider.providerId}
+          reportedUserName={provider.businessName}
+        />
       </div>
     </main>
   );

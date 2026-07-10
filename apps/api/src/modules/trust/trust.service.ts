@@ -57,19 +57,19 @@ export class TrustService {
     const points = params.customPoints ?? eventDef.points;
     const reason = params.customReason ?? eventDef.reason;
 
-    // Get current trust score
-    const user = await this.prisma.user.findUnique({
-      where: { id: params.userId },
-      select: { trustScore: true },
-    });
+    // Interactive transaction: read + write in the same TX to prevent race conditions
+    // where two concurrent events read the same score and overwrite each other.
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: { id: params.userId },
+        select: { trustScore: true },
+      });
 
-    if (!user) return;
+      if (!user) return null;
 
-    const newScore = Math.max(0, Math.min(100, user.trustScore + points));
+      const newScore = Math.max(0, Math.min(100, user.trustScore + points));
 
-    // Create event and update score atomically
-    await this.prisma.$transaction([
-      this.prisma.trustEvent.create({
+      await tx.trustEvent.create({
         data: {
           userId: params.userId,
           eventType: params.eventType,
@@ -77,14 +77,15 @@ export class TrustService {
           reason,
           requestId: params.requestId ?? null,
         },
-      }),
-      this.prisma.user.update({
+      });
+
+      await tx.user.update({
         where: { id: params.userId },
         data: { trustScore: newScore },
-      }),
-    ]);
+      });
 
-    return { previousScore: user.trustScore, newScore, points, reason };
+      return { previousScore: user.trustScore, newScore, points, reason };
+    });
   }
 
   /**

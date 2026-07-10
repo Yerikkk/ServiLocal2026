@@ -1,0 +1,156 @@
+config:
+  target: "http://localhost:3001/api"
+  phases:
+    # Fase 1: Calentamiento (2 minutos)
+    - duration: 120
+      arrivalRate: 3
+      rampTo: 10
+      name: "🟢 Calentamiento (3 → 10 usuarios/segundo)"
+
+    # Fase 2: Carga normal sostenida (3 minutos)
+    - duration: 180
+      arrivalRate: 10
+      name: "🟡 Carga Normal Sostenida (10 usuarios/segundo)"
+
+    # Fase 3: Carga alta (2 minutos)
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 25
+      name: "🟠 Carga Alta (10 → 25 usuarios/segundo)"
+
+    # Fase 4: Pico de estrés (1 minuto)
+    - duration: 60
+      arrivalRate: 40
+      name: "🔴 Pico de Estrés (40 usuarios/segundo)"
+
+    # Fase 5: Recuperación (1 minuto)
+    - duration: 60
+      arrivalRate: 5
+      name: "🔵 Fase de Recuperación (5 usuarios/segundo)"
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+
+  # Métricas personalizadas
+  ensure:
+    thresholds:
+      - http.response_time.p95: 3000   # P95 debe ser < 3 segundos
+      - http.response_time.p99: 8000   # P99 debe ser < 8 segundos
+
+# ──────────────────────────────────────────────────────────
+# Escenarios de usuario
+# ──────────────────────────────────────────────────────────
+
+scenarios:
+  # ─── Visitante anónimo navega el catálogo (40% del tráfico) ───
+  - name: "👁️ Visitante Anónimo — Exploración del Catálogo"
+    weight: 40
+    flow:
+      # Ver categorías de servicios
+      - get:
+          url: "/services/categories"
+          capture:
+            - json: "$.items"
+              as: "categories"
+      - think: 1
+
+      # Buscar servicios con diferentes términos
+      - get:
+          url: "/services/public?page=1&limit=10"
+      - think: 2
+
+      # Búsqueda con texto
+      - get:
+          url: "/services/public?search=limpieza&page=1&limit=10"
+      - think: 1
+
+      # Explorar proveedores
+      - get:
+          url: "/providers/public"
+      - think: 2
+
+      # Buscar proveedor específico
+      - get:
+          url: "/providers/public?search=electricista"
+      - think: 1
+
+  # ─── Cliente hace login y busca servicios (30% del tráfico) ───
+  - name: "👤 Cliente Autenticado — Búsqueda y Solicitud"
+    weight: 30
+    flow:
+      # Login
+      - post:
+          url: "/auth/login"
+          json:
+            email: "cliente1@ejemplo.com"
+            password: "Demo12345*"
+      - think: 1
+
+      # Buscar servicios
+      - get:
+          url: "/services/public?search=plomero&page=1&limit=10"
+      - think: 2
+
+      # Ver proveedores
+      - get:
+          url: "/providers/public"
+      - think: 2
+
+      # Buscar por categoría
+      - get:
+          url: "/services/public?page=1&limit=10"
+      - think: 1
+
+  # ─── Proveedor gestiona su negocio (20% del tráfico) ───
+  - name: "🔧 Proveedor — Gestión de Negocio"
+    weight: 20
+    flow:
+      # Login como proveedor
+      - post:
+          url: "/auth/login"
+          json:
+            email: "proveedor1@ejemplo.com"
+            password: "Demo12345*"
+      - think: 1
+
+      # Ver catálogo de servicios (referencia)
+      - get:
+          url: "/services/public?page=1&limit=10"
+      - think: 2
+
+      # Ver categorías
+      - get:
+          url: "/services/categories"
+      - think: 1
+
+      # Ver proveedores (competencia)
+      - get:
+          url: "/providers/public"
+      - think: 3
+
+  # ─── Registro de nuevos usuarios (10% del tráfico) ───
+  - name: "📝 Nuevo Usuario — Registro"
+    weight: 10
+    flow:
+      # Ver landing (categorías)
+      - get:
+          url: "/services/categories"
+      - think: 2
+
+      # Explorar servicios antes de registrarse
+      - get:
+          url: "/services/public?page=1&limit=10"
+      - think: 3
+
+      # Intentar registro (puede fallar por email duplicado - esperado)
+      - post:
+          url: "/auth/register"
+          json:
+            email: "stress_{{ $randomNumber(1, 999999) }}@artillery-test.com"
+            fullName: "Artillery Stress User {{ $randomNumber(1, 999999) }}"
+            password: "ArtStress123!"
+            confirmPassword: "ArtStress123!"
+            role: "CLIENT"
+      - think: 1

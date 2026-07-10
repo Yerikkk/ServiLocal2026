@@ -10,8 +10,10 @@ import {
   User,
   Users,
 } from 'lucide-react';
+import { useSocket } from '@/contexts/SocketContext';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { logoutSession } from '@/lib/auth-session';
+import { apiUrl } from '@/lib/api-url';
 
 type UserRole = 'ADMIN' | 'CLIENT' | 'PROVIDER';
 
@@ -55,6 +57,7 @@ export function RoleDashboard({
   nextText,
 }: RoleDashboardProps) {
   const router = useRouter();
+  const { connect, disconnect } = useSocket();
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -73,7 +76,7 @@ export function RoleDashboard({
         setLoading(true);
         setError('');
 
-        const response = await fetch(`${API_URL}/api/auth/me`, {
+        const response = await fetch(apiUrl('/api/auth/me'), {
           method: 'GET',
           credentials: 'include',
         });
@@ -96,6 +99,7 @@ export function RoleDashboard({
 
         if (!ignore) {
           setUser(data);
+          connect(data.id);
         }
       } catch (err) {
         if (!ignore) {
@@ -114,24 +118,15 @@ export function RoleDashboard({
 
     return () => {
       ignore = true;
+      disconnect();
     };
-  }, [allowedRole, router]);
+  }, [allowedRole, router, connect, disconnect]);
 
   async function handleLogout() {
-    try {
-      setLoggingOut(true);
-
-      await fetch(`${API_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      router.replace('/iniciar-sesion');
-    } catch {
-      router.replace('/iniciar-sesion');
-    } finally {
-      setLoggingOut(false);
-    }
+    if (loggingOut) return;
+    setLoggingOut(true);
+    disconnect();
+    await logoutSession();
   }
 
   if (loading) {

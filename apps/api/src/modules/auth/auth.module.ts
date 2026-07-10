@@ -26,6 +26,6 @@ import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtAccessStrategy],
-  exports: [AuthService], // <- agrega esto
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

@@ -136,7 +136,7 @@ export function ClientServiceRequestsPage() {
       const data = await api.patch<{ request: ClientRequestItem }>(
         `/api/service-requests/${requestId}/status`, { status: 'CANCELLED' },
       );
-      setItems((c) => c.map((item) => (item.id === requestId ? data.request : item)));
+      setItems((c) => (c || []).map((item) => (item.id === requestId ? data.request : item)));
     } catch (err: any) {
       setError(err?.message ?? 'No se pudo cancelar la solicitud');
     } finally {
@@ -145,13 +145,13 @@ export function ClientServiceRequestsPage() {
   }
 
   const filtered = useMemo(() => {
-    if (filter === 'TODOS') return items;
-    return items.filter((i) => i.status === filter);
+    if (filter === 'TODOS') return items || [];
+    return (items || []).filter((i) => i.status === filter);
   }, [items, filter]);
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { TODOS: items.length };
-    items.forEach((i) => { c[i.status] = (c[i.status] || 0) + 1; });
+    const c: Record<string, number> = { TODOS: (items || []).length };
+    (items || []).forEach((i) => { c[i.status] = (c[i.status] || 0) + 1; });
     return c;
   }, [items]);
 
@@ -185,9 +185,9 @@ export function ClientServiceRequestsPage() {
             {/* Quick Stats */}
             <div className="flex gap-4 mt-6">
               {[
-                { label: 'Total', value: items.length, icon: Inbox },
-                { label: 'Activas', value: items.filter(i => !['COMPLETED','CANCELLED','EXPIRED'].includes(i.status)).length, icon: Sparkles },
-                { label: 'Completadas', value: items.filter(i => i.status === 'COMPLETED').length, icon: CheckCircle2 },
+                { label: 'Total', value: (items || []).length, icon: Inbox },
+                { label: 'Activas', value: (items || []).filter(i => !['COMPLETED','CANCELLED','EXPIRED'].includes(i.status)).length, icon: Sparkles },
+                { label: 'Completadas', value: (items || []).filter(i => i.status === 'COMPLETED').length, icon: CheckCircle2 },
               ].map((s) => (
                 <div key={s.label} className="flex items-center gap-2.5 rounded-2xl bg-white/10 backdrop-blur-sm px-4 py-3">
                   <s.icon className="h-4 w-4 text-white/70" />
@@ -262,7 +262,7 @@ export function ClientServiceRequestsPage() {
 
         {/* Request Cards */}
         <div className="space-y-5 sl-stagger">
-          {filtered.map((item) => {
+          {(filtered || []).map((item) => {
             const sc = statusConfig[item.status];
             const StatusIcon = sc?.icon ?? Clock3;
             const isCancellable = item.status === 'PENDING' || item.status === 'NEGOTIATION';
@@ -286,7 +286,7 @@ export function ClientServiceRequestsPage() {
                     <div className="flex items-start gap-4">
                       {/* Provider avatar */}
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--sl-primary-light)] text-[var(--sl-primary)] font-bold text-lg shadow-sm group-hover:scale-105 transition-transform">
-                        {item.provider.businessName.charAt(0).toUpperCase()}
+                        {item.provider?.businessName?.charAt(0)?.toUpperCase() || '?'}
                       </div>
                       <div>
                         <h2 className="text-xl font-extrabold tracking-tight" style={{ color: 'var(--sl-text-primary)' }}>
@@ -294,9 +294,9 @@ export function ClientServiceRequestsPage() {
                         </h2>
                         <div className="flex items-center gap-2 mt-1.5">
                           <span className="text-sm font-semibold text-[var(--sl-primary)]">
-                            {item.provider.businessName}
+                            {item.provider?.businessName || 'Proveedor'}
                           </span>
-                          {item.provider.isVerified && (
+                          {item.provider?.isVerified && (
                             <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
                               ✓ Verificado
                             </span>
@@ -321,8 +321,8 @@ export function ClientServiceRequestsPage() {
 
                   {/* Details grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
-                    <DetailChip icon={<User className="h-3.5 w-3.5" />} label="Responsable" value={item.provider.responsibleName} />
-                    <DetailChip icon={<Wrench className="h-3.5 w-3.5" />} label="Servicio" value={item.provider.serviceName} />
+                    <DetailChip icon={<User className="h-3.5 w-3.5" />} label="Responsable" value={item.provider?.responsibleName || 'No disponible'} />
+                    <DetailChip icon={<Wrench className="h-3.5 w-3.5" />} label="Servicio" value={item.provider?.serviceName || 'No disponible'} />
                     <DetailChip icon={<MapPin className="h-3.5 w-3.5" />} label="Zona" value={item.serviceZone} />
                     <DetailChip
                       icon={<Calendar className="h-3.5 w-3.5" />}
@@ -353,7 +353,7 @@ export function ClientServiceRequestsPage() {
                       <MessageSquare className="h-4 w-4" /> Abrir chat
                     </Link>
                     <Link
-                      href={`/proveedores/${item.provider.providerId}`}
+                      href={`/proveedores/${item.provider?.providerId || ''}`}
                       className="inline-flex h-11 items-center gap-2 rounded-xl border border-[var(--sl-border)] px-5 text-sm font-semibold hover:bg-[var(--sl-primary-muted)] hover:border-[var(--sl-primary)] transition-all"
                       style={{ color: 'var(--sl-text-primary)' }}
                     >
@@ -374,10 +374,10 @@ export function ClientServiceRequestsPage() {
                   {/* Time footer */}
                   <div className="mt-5 pt-4 border-t border-[var(--sl-border-light)] flex items-center gap-4">
                     <span className="text-[11px] font-medium" style={{ color: 'var(--sl-text-muted)' }}>
-                      Creada {new Date(item.createdAt).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      Creada {item.createdAt ? new Date(item.createdAt).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
                     </span>
                     <span className="text-[11px] font-medium" style={{ color: 'var(--sl-text-muted)' }}>
-                      Actualizada {new Date(item.updatedAt).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      Actualizada {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
                     </span>
                   </div>
                 </div>

@@ -454,6 +454,9 @@ export class AdminService {
   // ─── Dashboard Stats ────────────────────────────────────
 
   async getDashboardStats() {
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
     const [
       totalUsers,
       totalProviders,
@@ -466,6 +469,8 @@ export class AdminService {
       completedRequests,
       totalCategories,
       totalServices,
+      newUsersThisMonth,
+      newRequestsThisMonth,
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { role: UserRole.PROVIDER } }),
@@ -478,7 +483,42 @@ export class AdminService {
       this.prisma.serviceRequest.count({ where: { status: ServiceRequestStatus.COMPLETED } }),
       this.prisma.category.count({ where: { isActive: true } }),
       this.prisma.service.count({ where: { isActive: true } }),
+      this.prisma.user.count({ where: { createdAt: { gte: firstDayOfMonth } } }),
+      this.prisma.serviceRequest.count({ where: { createdAt: { gte: firstDayOfMonth } } }),
     ]);
+
+    // Monthly breakdown for last 6 months — all queries run in parallel
+    const monthRanges = Array.from({ length: 6 }, (_, i) => {
+      const idx = 5 - i;
+      const d = new Date(now.getFullYear(), now.getMonth() - idx, 1);
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() - idx + 1, 1);
+      return {
+        monthKey: d.toISOString().slice(0, 7),
+        monthLabel: d.toLocaleDateString('es-PE', { month: 'short', year: '2-digit' }),
+        gte: d,
+        lt: nextMonth,
+      };
+    });
+
+    const monthlyResults = await Promise.all(
+      monthRanges.map(({ gte, lt }) =>
+        Promise.all([
+          this.prisma.user.count({ where: { createdAt: { gte, lt } } }),
+          this.prisma.serviceRequest.count({ where: { createdAt: { gte, lt } } }),
+          this.prisma.serviceRequest.count({
+            where: { createdAt: { gte, lt }, status: ServiceRequestStatus.COMPLETED },
+          }),
+        ]),
+      ),
+    );
+
+    const monthlyBreakdown = monthRanges.map((range, i) => ({
+      month: range.monthKey,
+      label: range.monthLabel,
+      users: monthlyResults[i][0],
+      requests: monthlyResults[i][1],
+      completed: monthlyResults[i][2],
+    }));
 
     return {
       totalUsers,
@@ -492,6 +532,9 @@ export class AdminService {
       completedRequests,
       totalCategories,
       totalServices,
+      newUsersThisMonth,
+      newRequestsThisMonth,
+      monthlyBreakdown,
     };
   }
 }

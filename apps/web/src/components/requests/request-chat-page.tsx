@@ -19,10 +19,13 @@ import {
   Info,
   ExternalLink,
   Shield,
-  Calendar
+  Calendar,
+  Flag
 } from 'lucide-react';
 import { translateStatus } from '@/lib/translations';
 import { api, type ApiError } from '@/lib/api-client';
+import { useSocket } from '@/contexts/SocketContext';
+import { ReportModal } from '@/components/ui/report-modal';
 
 type Role = 'CLIENT' | 'PROVIDER';
 
@@ -78,6 +81,7 @@ export function RequestChatPage({
   const params = useParams<{ requestId: string }>();
   const router = useRouter();
   const requestId = params?.requestId;
+  const { socket } = useSocket();
 
   const [chat, setChat] = useState<ChatResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,6 +91,7 @@ export function RequestChatPage({
   const [showPublicProfile, setShowPublicProfile] = useState(false);
   const [publicProfile, setPublicProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -125,7 +130,7 @@ export function RequestChatPage({
 
   const loadPublicProfile = async () => {
     if (!chat) return;
-    const otherId = role === 'CLIENT' ? chat.request.provider.id : chat.request.client.id;
+    const otherId = role === 'CLIENT' ? chat.request.provider?.id : chat.request.client?.id;
     
     try {
       setLoadingProfile(true);
@@ -141,7 +146,6 @@ export function RequestChatPage({
 
   useEffect(() => {
     let ignore = false;
-    let intervalId: number | undefined;
 
     async function initialize() {
       try {
@@ -155,12 +159,6 @@ export function RequestChatPage({
         }
 
         await loadChat();
-
-        intervalId = window.setInterval(() => {
-          if (!ignore) {
-            loadChat().catch(() => null);
-          }
-        }, 4000);
       } catch (err: any) {
         if (err?.status === 401) return;
         if (!ignore) {
@@ -177,11 +175,30 @@ export function RequestChatPage({
 
     return () => {
       ignore = true;
-      if (intervalId) {
-        window.clearInterval(intervalId);
-      }
     };
   }, [loadChat, role, router]);
+
+  /* ── Listen for real-time chat messages ──────── */
+  useEffect(() => {
+    if (!socket || !requestId) return;
+
+    const handleNewMessage = (data: { requestId: string; message: ChatItem }) => {
+      if (data.requestId === requestId) {
+        setChat((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            items: [...prev.items, data.message]
+          };
+        });
+      }
+    };
+
+    socket.on('newMessage', handleNewMessage);
+    return () => {
+      socket.off('newMessage', handleNewMessage);
+    };
+  }, [socket, requestId]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -224,7 +241,7 @@ export function RequestChatPage({
     );
   }
 
-  const otherPartyName = role === 'CLIENT' ? chat?.request.provider.businessName || chat?.request.provider.fullName : chat?.request.client.fullName;
+  const otherPartyName = role === 'CLIENT' ? chat?.request.provider?.businessName || chat?.request.provider?.fullName || 'Proveedor' : chat?.request.client?.fullName || 'Cliente';
 
   return (
     <main className="flex h-screen flex-col bg-[var(--sl-bg)]">
@@ -271,10 +288,11 @@ export function RequestChatPage({
               <ShieldCheck className="h-3.5 w-3.5" /> Pago seguro
             </span>
             <button 
-              onClick={handleMoreOptions}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--sl-text-secondary)] hover:bg-[var(--sl-border)] hover:text-[var(--sl-primary)] transition-colors"
+              onClick={() => setIsReportModalOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--sl-text-secondary)] hover:bg-red-50 hover:text-red-600 transition-colors"
+              title="Reportar usuario"
             >
-              <MoreVertical className="h-5 w-5" />
+              <Flag className="h-5 w-5" />
             </button>
           </div>
       </header>
@@ -315,7 +333,7 @@ export function RequestChatPage({
                   <div className="shrink-0 w-8 flex justify-center">
                     {!isMine && showAvatar && (
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--sl-border)] text-xs font-bold text-[var(--sl-text-secondary)]">
-                        {item.sender.fullName.charAt(0).toUpperCase()}
+                        {item.sender.fullName?.charAt(0)?.toUpperCase() || '?'}
                       </div>
                     )}
                   </div>
@@ -531,6 +549,14 @@ export function RequestChatPage({
           </aside>
         </div>
       )}
+      
+      <ReportModal
+        open={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        reportedUserId={role === 'CLIENT' ? chat?.request.provider?.id || '' : chat?.request.client?.id || ''}
+        reportedUserName={otherPartyName || ''}
+        requestId={requestId}
+      />
     </main>
   );
 }

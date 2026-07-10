@@ -10,20 +10,19 @@
  * – Provides typed helpers: `api.get<T>()`, `api.post<T>()`, etc.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { getApiBaseUrl } from './api-url';
+import {
+  getCsrfToken,
+  invalidateAuthCache,
+  logoutSession,
+} from './auth-session';
 
-/* ────────────────────────────── helpers ─────────────────────────── */
+export { logoutSession, invalidateAuthCache };
 
-function getCsrfToken(): string | null {
-  if (typeof document === 'undefined') return null;
-  const match = document.cookie
-    .split('; ')
-    .find((c) => c.startsWith('csrf_token='));
-  return match ? decodeURIComponent(match.split('=')[1]) : null;
-}
+const API_URL = getApiBaseUrl();
 
 function isMutation(method: string) {
-  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase());
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes((method || '').toUpperCase());
 }
 
 /* ──────────────────────────── refresh ──────────────────────────── */
@@ -96,14 +95,18 @@ async function request<T>(
 
   // 401 → try refresh once
   if (res.status === 401 && !_retried) {
-    const refreshed = await tryRefresh();
-    if (refreshed) {
-      return request<T>(path, options, true);
+    const isLogout = path === '/api/auth/logout';
+    if (!isLogout) {
+      const refreshed = await tryRefresh();
+      if (refreshed) {
+        return request<T>(path, options, true);
+      }
     }
 
-    // Redirect to login (only in browser)
-    if (typeof window !== 'undefined') {
-      window.location.href = '/iniciar-sesion';
+    invalidateAuthCache();
+
+    if (typeof window !== 'undefined' && !isLogout) {
+      window.location.replace('/iniciar-sesion');
     }
     throw { status: 401, message: 'Sesión expirada' } satisfies ApiError;
   }
@@ -152,5 +155,16 @@ export const api = {
   },
   delete<T>(path: string, opts?: RequestInit) {
     return request<T>(path, { ...opts, method: 'DELETE' });
+  },
+  upload<T>(path: string, formData: FormData, opts?: RequestInit) {
+    return request<T>(path, {
+      ...opts,
+      method: 'POST',
+      body: formData,
+      // Don't set Content-Type, let fetch set it with boundary
+    });
+  },
+  logout() {
+    return logoutSession();
   },
 };

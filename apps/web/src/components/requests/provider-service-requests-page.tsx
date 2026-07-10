@@ -83,7 +83,7 @@ export function ProviderServiceRequestsPage() {
       const data = await api.patch<{ request: ProviderRequestItem }>(
         `/api/service-requests/${requestId}/status`, { status },
       );
-      setItems((c) => c.map((i) => (i.id === requestId ? data.request : i)));
+      setItems((c) => (c || []).map((i) => (i.id === requestId ? data.request : i)));
     } catch (err: any) {
       setError(err?.message ?? 'Error al actualizar');
     } finally {
@@ -92,13 +92,13 @@ export function ProviderServiceRequestsPage() {
   }
 
   const filtered = useMemo(() => {
-    if (filter === 'TODOS') return items;
-    return items.filter((i) => i.status === filter);
+    if (filter === 'TODOS') return items || [];
+    return (items || []).filter((i) => i.status === filter);
   }, [items, filter]);
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { TODOS: items.length };
-    items.forEach((i) => { c[i.status] = (c[i.status] || 0) + 1; });
+    const c: Record<string, number> = { TODOS: (items || []).length };
+    (items || []).forEach((i) => { c[i.status] = (c[i.status] || 0) + 1; });
     return c;
   }, [items]);
 
@@ -128,9 +128,9 @@ export function ProviderServiceRequestsPage() {
             </p>
             <div className="flex gap-4 mt-6">
               {[
-                { label: 'Recibidas', value: items.length, icon: Inbox },
-                { label: 'Por atender', value: items.filter(i => i.status === 'PENDING').length, icon: Clock3 },
-                { label: 'En proceso', value: items.filter(i => ['NEGOTIATION','ACCEPTED','IN_PROGRESS'].includes(i.status)).length, icon: Sparkles },
+                { label: 'Recibidas', value: (items || []).length, icon: Inbox },
+                { label: 'Por atender', value: (items || []).filter(i => i.status === 'PENDING').length, icon: Clock3 },
+                { label: 'En proceso', value: (items || []).filter(i => ['NEGOTIATION','ACCEPTED','IN_PROGRESS'].includes(i.status)).length, icon: Sparkles },
               ].map((s) => (
                 <div key={s.label} className="flex items-center gap-2.5 rounded-2xl bg-white/10 backdrop-blur-sm px-4 py-3">
                   <s.icon className="h-4 w-4 text-white/70" />
@@ -194,7 +194,7 @@ export function ProviderServiceRequestsPage() {
 
         {/* Request Cards */}
         <div className="space-y-5 sl-stagger">
-          {filtered.map((item) => {
+          {(filtered || []).map((item) => {
             const sc = statusConfig[item.status];
             const StatusIcon = sc?.icon ?? Clock3;
             const isPending = item.status === 'PENDING';
@@ -219,14 +219,14 @@ export function ProviderServiceRequestsPage() {
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <div className="flex items-start gap-4">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 font-bold text-lg shadow-sm group-hover:scale-105 transition-transform">
-                        {item.client.fullName.charAt(0).toUpperCase()}
+                        {item.client?.fullName?.charAt(0)?.toUpperCase() || '?'}
                       </div>
                       <div>
                         <h2 className="text-xl font-extrabold tracking-tight" style={{ color: 'var(--sl-text-primary)' }}>
                           {item.serviceTitle}
                         </h2>
                         <p className="text-sm font-semibold text-emerald-600 mt-1">
-                          Solicitud de {item.client.fullName}
+                          Solicitud de {item.client?.fullName || 'Cliente'}
                         </p>
                         {isUrgent && (
                           <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md mt-1.5 sl-animate-glow">
@@ -244,8 +244,8 @@ export function ProviderServiceRequestsPage() {
 
                   {/* Client info + details */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
-                    <DetailChip icon={<Mail className="h-3.5 w-3.5" />} label="Correo" value={item.client.email} />
-                    <DetailChip icon={<Phone className="h-3.5 w-3.5" />} label="Teléfono" value={item.client.phone || 'No disponible'} />
+                    <DetailChip icon={<Mail className="h-3.5 w-3.5" />} label="Correo" value={item.client?.email || 'No disponible'} />
+                    <DetailChip icon={<Phone className="h-3.5 w-3.5" />} label="Teléfono" value={item.client?.phone || 'No disponible'} />
                     <DetailChip icon={<MapPin className="h-3.5 w-3.5" />} label="Zona" value={item.serviceZone} />
                     <DetailChip icon={<Calendar className="h-3.5 w-3.5" />} label="Fecha" value={item.preferredDate ? new Date(item.preferredDate).toLocaleDateString() : 'No indicada'} />
                   </div>
@@ -306,7 +306,7 @@ export function ProviderServiceRequestsPage() {
 
                   <div className="mt-5 pt-4 border-t border-[var(--sl-border-light)] flex items-center gap-4">
                     <span className="text-[11px] font-medium" style={{ color: 'var(--sl-text-muted)' }}>
-                      Recibida {new Date(item.createdAt).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      Recibida {item.createdAt ? new Date(item.createdAt).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
                     </span>
                   </div>
                 </div>

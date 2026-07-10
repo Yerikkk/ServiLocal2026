@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { SkeletonList } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { api } from '@/lib/api-client';
+import { useSocket } from '@/contexts/SocketContext';
 import { cn } from '@/lib/cn';
 
 /* ─── Types ─────────────────────────────────────── */
@@ -71,6 +72,7 @@ function getIconMeta(type: string): IconMeta {
 }
 
 function formatDate(iso: string) {
+  if (!iso) return '';
   const d = new Date(iso);
   return d.toLocaleDateString('es-PE', {
     day: 'numeric', month: 'long', year: 'numeric',
@@ -95,6 +97,7 @@ const PAGE_SIZE = 20;
 
 export function NotificationsPanel() {
   const router = useRouter();
+  const { socket } = useSocket();
 
   const [user, setUser]         = useState<CurrentUser | null>(null);
   const [loading, setLoading]   = useState(true);
@@ -149,7 +152,23 @@ export function NotificationsPanel() {
 
   useEffect(() => { setPage(1); }, [unreadOnly]);
 
-  /* ── Mark single ────────────────────────────── */
+  /* ── Listen for real-time notifications ──────── */
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNotification = (notification: Notification) => {
+      setNotifs((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+      setTotal((prev) => prev + 1);
+    };
+
+    socket.on('notification', handleNotification);
+    return () => {
+      socket.off('notification', handleNotification);
+    };
+  }, [socket]);
+
+  /* ── Mark single ─────────────────────────────── */
   async function handleMarkRead(id: string) {
     try {
       await api.patch(`/api/notifications/${id}/read`);

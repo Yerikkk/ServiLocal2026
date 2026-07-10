@@ -30,7 +30,7 @@ export class UsersController {
 
   @Patch('profile')
   async updateProfile(@CurrentUser() user: any, @Body() body: any) {
-    const allowedUserFields = ['fullName', 'phone', 'bio', 'avatarUrl'];
+    const allowedUserFields = ['fullName', 'phone', 'bio', 'avatarUrl', 'documentNumber'];
     const allowedProviderFields = [
       'businessName',
       'specialty',

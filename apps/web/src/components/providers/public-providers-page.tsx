@@ -33,7 +33,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DynamicMap } from '@/components/ui/dynamic-map';
 import { Map as MapIcon, Grid } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiUrl } from '@/lib/api-url';
+import { getProviderCategoryKey } from '@/lib/provider-display';
 
 type TrustSummary = {
   score: number;
@@ -45,7 +46,10 @@ type PublicProvider = {
   responsibleName: string;
   phone?: string | null;
   businessName: string;
-  category: string;
+  categoryId?: string;
+  categorySlug?: string | null;
+  categoryName?: string | null;
+  category?: string | null;
   serviceName: string;
   customServiceName?: string | null;
   specialty?: string | null;
@@ -54,6 +58,8 @@ type PublicProvider = {
   isVerified: boolean;
   updatedAt: string;
   trustSummary: TrustSummary;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 type PublicProvidersResponse = {
@@ -183,7 +189,10 @@ export function PublicProvidersPage() {
         if (sort) params.set('sort', sort);
 
         const query = params.toString();
-        const response = await fetch(`${API_URL}/api/providers/public${query ? `?${query}` : ''}`, { method: 'GET', cache: 'no-store' });
+        const response = await fetch(apiUrl(`/api/providers/public${query ? `?${query}` : ''}`), {
+          method: 'GET',
+          cache: 'no-store',
+        });
 
         if (!response.ok) throw new Error('No se pudo cargar el directorio de proveedores');
         const data = (await response.json()) as PublicProvidersResponse;
@@ -198,22 +207,30 @@ export function PublicProvidersPage() {
     return () => { ignore = true; };
   }, [debouncedSearch, categoryFilter, zoneFilter, verifiedOnly, sort]);
 
-  const totalProviders = useMemo(() => providers.length, [providers]);
+  const totalProviders = useMemo(() => (providers || []).length, [providers]);
   const averageTrust = useMemo(() => {
-    if (!providers.length) return 0;
-    const total = providers.reduce((acc, item) => acc + item.trustSummary.score, 0);
-    return Math.round(total / providers.length);
+    if (!(providers || []).length) return 0;
+    const total = (providers || []).reduce((acc, item) => acc + item.trustSummary.score, 0);
+    return Math.round(total / (providers || []).length);
   }, [providers]);
 
   const mapLocations = useMemo(() => {
-    return providers.map((p, i) => {
-      // Mock coordinates near Talara for demo purposes
-      const latOffset = (Math.sin(i * 10) * 0.02);
-      const lngOffset = (Math.cos(i * 10) * 0.02);
+    return (providers || []).map((p, i) => {
+      // Use actual coordinates if available, otherwise use mock data near Talara
+      let lat = p.latitude ?? null;
+      let lng = p.longitude ?? null;
+
+      if (lat === null || lng === null) {
+        const latOffset = (Math.sin(i * 10) * 0.02);
+        const lngOffset = (Math.cos(i * 10) * 0.02);
+        lat = -4.5772 + latOffset;
+        lng = -81.2719 + lngOffset;
+      }
+
       return {
         id: p.providerId,
-        lat: -4.5772 + latOffset,
-        lng: -81.2719 + lngOffset,
+        lat: lat,
+        lng: lng,
         title: p.businessName,
         description: `${p.serviceName} - ${p.serviceZone} (Confianza: ${p.trustSummary.score})`
       };
@@ -363,8 +380,8 @@ export function PublicProvidersPage() {
             </section>
           ) : (
             <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 sl-stagger">
-              {providers.map((provider) => {
-                const catData = getCategoryIcon(provider.category);
+              {(providers || []).map((provider) => {
+                const catData = getCategoryIcon(getProviderCategoryKey(provider));
                 const Icon = catData.icon;
 
                 return (

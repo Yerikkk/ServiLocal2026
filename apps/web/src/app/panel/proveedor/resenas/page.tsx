@@ -192,15 +192,15 @@ export default function ResenasProveedorPage() {
           <div>
             <h2 className="text-xl font-bold mb-5" style={{ color: 'var(--sl-text-primary)' }}>Reseñas recientes</h2>
             <div className="space-y-4 sl-stagger">
-              {reviews.items.map((review) => (
+              {(reviews.items || []).map((review) => (
                 <div key={review.id} className="sl-card-premium p-6 md:p-8">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4">
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 font-bold text-lg">
-                        {review.client.fullName.charAt(0)}
+                        {review.client?.fullName?.charAt(0) || '?'}
                       </div>
                       <div>
-                        <p className="text-sm font-bold" style={{ color: 'var(--sl-text-primary)' }}>{review.client.fullName}</p>
+                        <p className="text-sm font-bold" style={{ color: 'var(--sl-text-primary)' }}>{review.client?.fullName || 'Cliente'}</p>
                         <p className="text-xs mt-0.5" style={{ color: 'var(--sl-text-muted)' }}>{review.service}</p>
                         <div className="flex gap-0.5 mt-2">
                           {Array.from({ length: 5 }).map((_, i) => (
@@ -210,7 +210,7 @@ export default function ResenasProveedorPage() {
                       </div>
                     </div>
                     <span className="text-[11px] font-medium whitespace-nowrap" style={{ color: 'var(--sl-text-muted)' }}>
-                      {new Date(review.createdAt).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' })}
+                      {review.createdAt ? new Date(review.createdAt).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' }) : ''}
                     </span>
                   </div>
                   {review.comment && (

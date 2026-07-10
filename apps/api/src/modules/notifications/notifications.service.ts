@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { NotificationsGateway } from '../../common/websockets/notifications.gateway';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsGateway: NotificationsGateway,
+  ) {}
 
   async listForUser(
     userId: string,
@@ -74,7 +78,7 @@ export class NotificationsService {
     message: string;
     data?: Record<string, any>;
   }) {
-    return this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: params.userId,
         type: params.type,
@@ -85,5 +89,10 @@ export class NotificationsService {
           : Prisma.JsonNull,
       },
     });
+
+    // Send real-time notification
+    this.notificationsGateway.sendNotificationToUser(params.userId, notification);
+
+    return notification;
   }
 }

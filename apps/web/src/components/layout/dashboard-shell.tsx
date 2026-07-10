@@ -39,8 +39,7 @@ import { cn } from '@/lib/cn';
 import { useTheme } from '@/components/ui/theme-provider';
 import { useEffect } from 'react';
 import { NotificationsBell } from '@/components/ui/notifications-bell';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { logoutSession } from '@/lib/auth-session';
 
 type SidebarLink = {
   href: string;
@@ -115,12 +114,9 @@ export function DashboardShell({ children, role, userName, userEmail, notificati
   const roleColor = role === 'ADMIN' ? 'bg-violet-100 text-violet-700' : role === 'SUPPORT' ? 'bg-purple-100 text-purple-700' : role === 'PROVIDER' ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700';
 
   async function handleLogout() {
-    try {
-      setLoggingOut(true);
-      await fetch(`${API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' });
-    } catch { /* ignore */ } finally {
-      router.replace('/iniciar-sesion');
-    }
+    if (loggingOut) return;
+    setLoggingOut(true);
+    await logoutSession();
   }
 
   const sidebarContent = (
@@ -145,7 +141,7 @@ export function DashboardShell({ children, role, userName, userEmail, notificati
       >
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--sl-primary)] text-white font-bold text-sm group-hover:scale-105 transition-transform">
-            {userName.charAt(0).toUpperCase()}
+            {userName?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1">

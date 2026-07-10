@@ -7,7 +7,7 @@ import { Menu, Wrench, X, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useTheme } from '@/components/ui/theme-provider';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { fetchAuthMe } from '@/lib/auth-session';
 
 const navLinks = [
   { href: '/servicios', label: 'Servicios' },
@@ -22,29 +22,49 @@ export function Navbar() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<{ role: string; fullName: string } | null>(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     setMounted(true);
     
-    // Check session
-    fetch(`${API_URL}/api/auth/me`, { credentials: 'include' })
-      .then(res => {
-        if (res.ok) return res.json();
-        throw new Error('Not logged in');
-      })
-      .then(data => setUser(data))
-      .catch(() => setUser(null));
+    fetchAuthMe().then((data) => {
+      if (data) setUser({ role: data.role, fullName: data.fullName });
+      else setUser(null);
+    });
+
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+      const winScroll = document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      setScrollProgress((winScroll / height) * 100);
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const isDark = theme === 'dark' || (theme === 'system' && mounted && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--sl-border)] sl-glass">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
+    <header className={cn(
+      "sticky top-0 z-50 transition-all duration-300",
+      scrolled ? "sl-glass-premium border-b border-[var(--sl-border)] shadow-sm" : "bg-transparent border-b border-transparent"
+    )}>
+      {/* Scroll Progress Bar */}
+      <div 
+        className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-cyan-400 via-[var(--sl-primary)] to-blue-500 transition-all duration-150 ease-out z-50"
+        style={{ width: `${scrollProgress}%` }}
+      />
+      
+      <div className={cn(
+        "mx-auto flex max-w-7xl items-center justify-between px-5 lg:px-8 transition-all duration-300",
+        scrolled ? "h-16" : "h-20"
+      )}>
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--sl-primary)] shadow-sm transition group-hover:shadow-md group-hover:scale-105">
-            <Wrench className="h-[18px] w-[18px] text-white" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-110 group-hover:rotate-3">
+            <Wrench className="h-5 w-5 text-white transition-transform group-hover:animate-bounce" />
           </div>
           <span className="text-xl font-extrabold tracking-[-0.04em]" style={{ color: 'var(--sl-text-primary)' }}>
             Servi<span className="text-[var(--sl-primary)]">Local</span>
@@ -80,7 +100,7 @@ export function Navbar() {
           
           {user ? (
             <Link
-              href={user.role === 'ADMIN' ? '/panel/admin' : user.role === 'PROVIDER' ? '/panel/proveedor' : '/panel/cliente'}
+              href={(user.role === 'ADMIN' ? '/panel/admin' : user.role === 'PROVIDER' ? '/panel/proveedor' : '/panel/cliente')}
               className="ml-2 inline-flex h-10 items-center justify-center rounded-xl bg-[var(--sl-primary)] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--sl-primary-hover)] hover:shadow-md active:scale-[0.98]"
             >
               Mi Panel

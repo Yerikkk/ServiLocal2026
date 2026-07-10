@@ -5,8 +5,17 @@
   "scripts": {
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api start:dev",
+    "dev:api:stress": "cross-env STRESS_TEST=true pnpm --filter api start:dev",
+    "dev": "concurrently \"pnpm dev:api\" \"pnpm dev:web\"",
+    "dev:stress": "concurrently \"pnpm dev:api:stress\" \"pnpm dev:web\"",
+    "test:stress": "pnpm --filter api exec tsx ../../scripts/stress-test.ts",
+    "test:chaos": "pnpm --filter api exec tsx ../../scripts/chaos-monkey.ts",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "format": "pnpm -r format"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3",
+    "cross-env": "^10.1.0"
   }
 }
