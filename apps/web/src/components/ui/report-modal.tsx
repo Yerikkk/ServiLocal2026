@@ -74,14 +74,15 @@ export function ReportModal({
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--sl-text-primary)' }}>
             Motivo del reporte <span className="text-red-500">*</span>
           </label>
           <select
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             disabled={loading}
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-700 focus:border-[var(--sl-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--sl-primary)]"
+            className="w-full rounded-xl border border-[var(--sl-border)] px-4 py-2.5 focus:border-[var(--sl-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--sl-primary)]"
+            style={{ background: 'var(--sl-surface)', color: 'var(--sl-text-primary)' }}
             required
           >
             {REPORT_REASONS.map((r) => (
@@ -93,7 +94,7 @@ export function ReportModal({
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          <label className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--sl-text-primary)' }}>
             Descripción o detalles (opcional)
           </label>
           <textarea
@@ -101,10 +102,11 @@ export function ReportModal({
             onChange={(e) => setDescription(e.target.value)}
             disabled={loading}
             rows={4}
-            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-700 placeholder:text-slate-400 focus:border-[var(--sl-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--sl-primary)]"
+            className="w-full resize-none rounded-xl border border-[var(--sl-border)] px-4 py-3 placeholder:text-[var(--sl-text-muted)] focus:border-[var(--sl-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--sl-primary)]"
+            style={{ background: 'var(--sl-surface)', color: 'var(--sl-text-primary)' }}
             placeholder="Añade detalles que nos ayuden a entender el problema..."
           />
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs" style={{ color: 'var(--sl-text-muted)' }}>
             Mínimo 10 caracteres si decides incluir una descripción.
           </p>
         </div>

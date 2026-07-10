@@ -60,11 +60,11 @@ export function TrustBar({
             </span>
           )}
           {showScore && (
-            <span className="text-xs font-bold text-slate-700">{score}/100</span>
+            <span className="text-xs font-bold" style={{ color: 'var(--sl-text-primary)' }}>{score}/100</span>
           )}
         </div>
       )}
-      <div className={cn('w-full rounded-full bg-slate-100 overflow-hidden', heightClass)}>
+      <div className={cn('w-full rounded-full overflow-hidden', heightClass)} style={{ background: 'var(--sl-border)' }}>
         <div
           className="h-full rounded-full transition-all duration-1000 ease-out"
           style={{

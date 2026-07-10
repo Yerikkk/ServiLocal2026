@@ -48,21 +48,23 @@ export function Modal({ open, onClose, title, description, children, size = 'md'
       {/* Content */}
       <div
         className={cn(
-          'relative w-full rounded-2xl bg-white shadow-2xl sl-animate-scale-in',
+          'relative w-full rounded-2xl shadow-2xl sl-animate-scale-in',
           sizeClasses[size],
           className,
         )}
+        style={{ background: 'var(--sl-surface)' }}
       >
         {/* Header */}
         {(title || description) && (
-          <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5">
+          <div className="flex items-start justify-between border-b border-[var(--sl-border-light)] px-6 py-5">
             <div>
-              {title && <h2 className="text-lg font-bold text-slate-900">{title}</h2>}
-              {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+              {title && <h2 className="text-lg font-bold" style={{ color: 'var(--sl-text-primary)' }}>{title}</h2>}
+              {description && <p className="mt-1 text-sm" style={{ color: 'var(--sl-text-muted)' }}>{description}</p>}
             </div>
             <button
               onClick={onClose}
-              className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              className="rounded-xl p-2 transition hover:bg-[var(--sl-primary-muted)]"
+              style={{ color: 'var(--sl-text-muted)' }}
             >
               <X className="h-5 w-5" />
             </button>
@@ -98,7 +100,7 @@ export function ConfirmModal({
       <div className="text-center">
         <div className={cn(
           'mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl',
-          variant === 'danger' ? 'bg-red-100 text-red-600' : 'bg-sky-100 text-sky-600',
+          variant === 'danger' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' : 'bg-sky-100 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400',
         )}>
           {variant === 'danger' ? (
             <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,13 +112,14 @@ export function ConfirmModal({
             </svg>
           )}
         </div>
-        <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-        <p className="mt-2 text-sm text-slate-500">{message}</p>
+        <h3 className="text-lg font-bold" style={{ color: 'var(--sl-text-primary)' }}>{title}</h3>
+        <p className="mt-2 text-sm" style={{ color: 'var(--sl-text-muted)' }}>{message}</p>
         <div className="mt-6 flex gap-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="flex-1 rounded-xl border border-[var(--sl-border)] px-4 py-2.5 text-sm font-semibold transition hover:bg-[var(--sl-primary-muted)]"
+            style={{ background: 'var(--sl-surface)', color: 'var(--sl-text-primary)' }}
           >
             {cancelLabel}
           </button>

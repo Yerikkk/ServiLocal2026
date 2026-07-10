@@ -111,7 +111,7 @@ export function DashboardShell({ children, role, userName, userEmail, notificati
 
   const links = role === 'ADMIN' ? adminLinks : role === 'SUPPORT' ? supportLinks : role === 'PROVIDER' ? providerLinks : clientLinks;
   const roleLabel = role === 'ADMIN' ? 'Administrador' : role === 'SUPPORT' ? 'Soporte' : role === 'PROVIDER' ? 'Proveedor' : 'Cliente';
-  const roleColor = role === 'ADMIN' ? 'bg-violet-100 text-violet-700' : role === 'SUPPORT' ? 'bg-purple-100 text-purple-700' : role === 'PROVIDER' ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700';
+  const roleColor = role === 'ADMIN' ? 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-400' : role === 'SUPPORT' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400' : role === 'PROVIDER' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400' : 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-400';
 
   async function handleLogout() {
     if (loggingOut) return;
@@ -217,7 +217,7 @@ export function DashboardShell({ children, role, userName, userEmail, notificati
           onClick={handleLogout}
           disabled={loggingOut}
           className={cn(
-            'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition hover:bg-red-50 hover:text-red-600',
+            'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400',
             collapsed && 'justify-center px-2',
           )}
           title={collapsed ? 'Cerrar sesión' : undefined}

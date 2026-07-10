@@ -38,10 +38,10 @@ const icons: Record<ToastType, ReactNode> = {
 };
 
 const bgColors: Record<ToastType, string> = {
-  success: 'border-emerald-200 bg-emerald-50',
-  error: 'border-red-200 bg-red-50',
-  info: 'border-blue-200 bg-blue-50',
-  warning: 'border-amber-200 bg-amber-50',
+  success: 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-500/10',
+  error: 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-500/10',
+  info: 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-500/10',
+  warning: 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-500/10',
 };
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) {
@@ -67,12 +67,13 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
     >
       <span className="mt-0.5 shrink-0">{icons[toast.type]}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-900">{toast.title}</p>
-        {toast.message && <p className="mt-0.5 text-sm text-slate-600">{toast.message}</p>}
+        <p className="text-sm font-semibold" style={{ color: 'var(--sl-text-primary)' }}>{toast.title}</p>
+        {toast.message && <p className="mt-0.5 text-sm" style={{ color: 'var(--sl-text-secondary)' }}>{toast.message}</p>}
       </div>
       <button
         onClick={() => { setExiting(true); setTimeout(() => onRemove(toast.id), 300); }}
-        className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-white/60 hover:text-slate-600"
+        className="shrink-0 rounded-lg p-1 transition hover:bg-[var(--sl-primary-muted)]"
+        style={{ color: 'var(--sl-text-muted)' }}
       >
         <X className="h-4 w-4" />
       </button>

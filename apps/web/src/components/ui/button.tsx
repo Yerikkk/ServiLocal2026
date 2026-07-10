@@ -7,15 +7,15 @@ const variants = {
   primary:
     'bg-[var(--sl-primary)] text-white hover:bg-[var(--sl-primary-hover)] active:scale-[0.98] shadow-sm hover:shadow-md',
   secondary:
-    'bg-[var(--sl-primary-light)] text-[var(--sl-primary)] hover:bg-sky-100 active:scale-[0.98]',
+    'bg-[var(--sl-primary-light)] text-[var(--sl-primary)] hover:bg-sky-100 dark:hover:bg-sky-500/15 active:scale-[0.98]',
   outline:
-    'border border-[var(--sl-border)] bg-[var(--sl-surface)] text-[var(--sl-text-primary)] hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98]',
+    'border border-[var(--sl-border)] bg-[var(--sl-surface)] text-[var(--sl-text-primary)] hover:bg-slate-50 hover:border-slate-300 dark:hover:bg-white/5 dark:hover:border-slate-600 active:scale-[0.98]',
   ghost:
-    'text-[var(--sl-text-secondary)] hover:bg-slate-100 hover:text-[var(--sl-text-primary)] active:scale-[0.98]',
+    'text-[var(--sl-text-secondary)] hover:bg-slate-100 hover:text-[var(--sl-text-primary)] dark:hover:bg-white/5 active:scale-[0.98]',
   danger:
     'bg-[var(--sl-danger)] text-white hover:bg-red-600 active:scale-[0.98] shadow-sm',
   'danger-outline':
-    'border border-red-200 bg-white text-red-600 hover:bg-red-50 active:scale-[0.98]',
+    'border border-red-200 bg-[var(--sl-surface)] text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-500/10 active:scale-[0.98]',
 } as const;
 
 const sizes = {

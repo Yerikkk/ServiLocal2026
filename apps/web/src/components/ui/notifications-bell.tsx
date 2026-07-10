@@ -24,17 +24,17 @@ type IconMeta = { icon: React.ElementType; bg: string; text: string };
 
 function getIconMeta(type: string): IconMeta {
   const map: Record<string, IconMeta> = {
-    SERVICE_REQUEST_CREATED:   { icon: FileText,     bg: 'bg-blue-100',    text: 'text-blue-600' },
-    SERVICE_REQUEST_ACCEPTED:  { icon: CheckCheck,   bg: 'bg-emerald-100', text: 'text-emerald-600' },
-    SERVICE_REQUEST_CANCELLED: { icon: X,            bg: 'bg-red-100',     text: 'text-red-500' },
-    SERVICE_REQUEST_COMPLETED: { icon: Star,         bg: 'bg-amber-100',   text: 'text-amber-600' },
-    SERVICE_REQUEST_EXPIRED:   { icon: ShieldCheck,  bg: 'bg-slate-100',   text: 'text-slate-500' },
-    NEW_MESSAGE:               { icon: MessageSquare,bg: 'bg-violet-100',  text: 'text-violet-600' },
-    TRUST_EVENT:               { icon: ShieldCheck,  bg: 'bg-emerald-100', text: 'text-emerald-600' },
-    SL_POINTS:                 { icon: Zap,          bg: 'bg-amber-100',   text: 'text-amber-600' },
-    SYSTEM:                    { icon: Info,          bg: 'bg-sky-100',     text: 'text-sky-600' },
+    SERVICE_REQUEST_CREATED:   { icon: FileText,     bg: 'bg-blue-100 dark:bg-blue-500/15',    text: 'text-blue-600 dark:text-blue-400' },
+    SERVICE_REQUEST_ACCEPTED:  { icon: CheckCheck,   bg: 'bg-emerald-100 dark:bg-emerald-500/15', text: 'text-emerald-600 dark:text-emerald-400' },
+    SERVICE_REQUEST_CANCELLED: { icon: X,            bg: 'bg-red-100 dark:bg-red-500/15',     text: 'text-red-500 dark:text-red-400' },
+    SERVICE_REQUEST_COMPLETED: { icon: Star,         bg: 'bg-amber-100 dark:bg-amber-500/15',   text: 'text-amber-600 dark:text-amber-400' },
+    SERVICE_REQUEST_EXPIRED:   { icon: ShieldCheck,  bg: 'bg-slate-100 dark:bg-slate-500/15',   text: 'text-slate-500 dark:text-slate-400' },
+    NEW_MESSAGE:               { icon: MessageSquare,bg: 'bg-violet-100 dark:bg-violet-500/15',  text: 'text-violet-600 dark:text-violet-400' },
+    TRUST_EVENT:               { icon: ShieldCheck,  bg: 'bg-emerald-100 dark:bg-emerald-500/15', text: 'text-emerald-600 dark:text-emerald-400' },
+    SL_POINTS:                 { icon: Zap,          bg: 'bg-amber-100 dark:bg-amber-500/15',   text: 'text-amber-600 dark:text-amber-400' },
+    SYSTEM:                    { icon: Info,          bg: 'bg-sky-100 dark:bg-sky-500/15',     text: 'text-sky-600 dark:text-sky-400' },
   };
-  return map[type] ?? { icon: Bell, bg: 'bg-slate-100', text: 'text-slate-500' };
+  return map[type] ?? { icon: Bell, bg: 'bg-slate-100 dark:bg-slate-500/15', text: 'text-slate-500 dark:text-slate-400' };
 }
 
 function formatRelative(iso: string): string {
