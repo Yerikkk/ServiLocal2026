@@ -2,6 +2,7 @@ import { plainToInstance } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumberString,
+  IsOptional,
   IsString,
   validateSync,
 } from 'class-validator';
@@ -12,19 +13,19 @@ export class EnvValidation {
   DATABASE_URL!: string;
 
   @IsString()
-  @IsNotEmpty()
-  REDIS_URL!: string;
+  @IsOptional()
+  REDIS_URL?: string;
 
   @IsString()
-  @IsNotEmpty()
-  MAIL_HOST!: string;
+  @IsOptional()
+  MAIL_HOST?: string;
 
-  @IsNumberString()
-  MAIL_PORT!: string;
+  @IsOptional()
+  MAIL_PORT?: string;
 
   @IsString()
-  @IsNotEmpty()
-  MAIL_FROM!: string;
+  @IsOptional()
+  MAIL_FROM?: string;
 
   @IsString()
   @IsNotEmpty()

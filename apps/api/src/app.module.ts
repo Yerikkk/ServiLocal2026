@@ -40,28 +40,43 @@ import { CsrfGuard } from './common/guards/csrf.guard';
     CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          url: configService.get<string>('REDIS_URL', 'redis://localhost:6379'),
-        }),
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const redisUrl = configService.get<string>('REDIS_URL');
+        if (redisUrl) {
+          try {
+            return {
+              store: await redisStore({ url: redisUrl }),
+            };
+          } catch {
+            console.warn('⚠️ Redis no disponible, usando cache en memoria');
+          }
+        }
+        return { ttl: 60 };
+      },
       inject: [ConfigService],
     }),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        throttlers: [
-          {
-            ttl: 60000,
-            // Si estamos en modo de prueba de estrés, permitimos 1 millón de requests por minuto
-            limit: config.get<string>('STRESS_TEST') === 'true' ? 1000000 : 20,
-          },
-        ],
-        storage: new ThrottlerStorageRedisService(
-          config.get<string>('REDIS_URL', 'redis://localhost:6379'),
-        ),
-      }),
+      useFactory: (config: ConfigService) => {
+        const redisUrl = config.get<string>('REDIS_URL');
+        const throttlerConfig: any = {
+          throttlers: [
+            {
+              ttl: 60000,
+              limit: config.get<string>('STRESS_TEST') === 'true' ? 1000000 : 20,
+            },
+          ],
+        };
+        if (redisUrl) {
+          try {
+            throttlerConfig.storage = new ThrottlerStorageRedisService(redisUrl);
+          } catch {
+            console.warn('⚠️ Redis no disponible para throttling, usando memoria');
+          }
+        }
+        return throttlerConfig;
+      },
     }),
     PrismaModule,
     UsersModule,
