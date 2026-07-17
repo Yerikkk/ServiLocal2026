@@ -14,11 +14,17 @@ import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { existsSync, mkdirSync } from 'fs';
 
-const uploadPath = './uploads';
+// Use /tmp in serverless (Vercel), ./uploads locally
+const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+const uploadPath = isServerless ? '/tmp/uploads' : './uploads';
 
-// Create uploads directory if it doesn't exist
-if (!existsSync(uploadPath)) {
-  mkdirSync(uploadPath, { recursive: true });
+// Create uploads directory safely
+try {
+  if (!existsSync(uploadPath)) {
+    mkdirSync(uploadPath, { recursive: true });
+  }
+} catch {
+  // Silently ignore — directory creation may fail in read-only environments
 }
 
 const allowedMimeTypes = [

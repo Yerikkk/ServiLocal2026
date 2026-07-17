@@ -4,9 +4,13 @@ import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { existsSync, mkdirSync } from 'fs';
 
+// Use /tmp in serverless (Vercel), ./uploads locally
+const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+const uploadBasePath = isServerless ? '/tmp/uploads' : './uploads';
+
 @Injectable()
 export class UploadService {
-  private readonly uploadPath = './uploads';
+  private readonly uploadPath = uploadBasePath;
   private readonly allowedMimeTypes = [
     'image/jpeg',
     'image/jpg',
@@ -15,9 +19,13 @@ export class UploadService {
   ];
 
   constructor() {
-    // Crear la carpeta de uploads si no existe
-    if (!existsSync(this.uploadPath)) {
-      mkdirSync(this.uploadPath, { recursive: true });
+    // Crear la carpeta de uploads si no existe (seguro para serverless)
+    try {
+      if (!existsSync(this.uploadPath)) {
+        mkdirSync(this.uploadPath, { recursive: true });
+      }
+    } catch {
+      // Silently ignore — directory creation may fail in read-only environments
     }
   }
 
