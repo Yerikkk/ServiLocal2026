@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-// A) Importación agregada
+import { Navbar } from '@/components/layout/navbar';
+import { Footer } from '@/components/layout/footer';
 import { RequestServiceForm } from '@/components/requests/request-service-form';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
@@ -226,8 +227,10 @@ export function PublicProviderDetailsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-8 md:px-8 lg:px-10">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-[var(--sl-bg)] pt-24 pb-12 px-6 md:px-8 lg:px-10">
+        <div className="mx-auto max-w-6xl space-y-8">
         <div className="flex items-center justify-between">
           <button
             onClick={() => router.back()}
@@ -248,8 +251,10 @@ export function PublicProviderDetailsPage() {
         </div>
 
         {/* Header Section */}
-        <section className="overflow-hidden rounded-[34px] bg-[#1EA8E7] text-white shadow-[0_20px_60px_rgba(30,168,231,0.18)]">
-          <div className="px-7 py-8 md:px-10 md:py-10">
+        <section className="relative overflow-hidden rounded-[34px] bg-gradient-to-br from-[var(--sl-primary)] via-blue-600 to-indigo-700 text-white shadow-xl sl-animate-slide-up">
+          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute -left-10 bottom-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+          <div className="relative px-7 py-8 md:px-10 md:py-12 z-10">
             <div className="flex flex-wrap items-center gap-3">
               {provider.isVerified ? (
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white">
@@ -486,6 +491,8 @@ export function PublicProviderDetailsPage() {
         />
       </div>
     </main>
+    <Footer />
+    </>
   );
 }
 
@@ -499,12 +506,13 @@ function InfoCard({
   value: string;
 }) {
   return (
-    <article className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-[#1EA8E7]">
+    <article className="sl-card-premium sl-glass-premium group relative overflow-hidden p-6 hover:shadow-lg transition-all duration-300">
+      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[var(--sl-primary)]/5 blur-2xl transition-opacity opacity-0 group-hover:opacity-100" />
+      <div className="relative z-10 mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--sl-primary-muted)] text-[var(--sl-primary)] shadow-sm transition-transform group-hover:scale-110 group-hover:-rotate-3 group-hover:shadow-md">
         {icon}
       </div>
-      <p className="text-sm font-medium text-slate-400">{label}</p>
-      <p className="mt-2 text-xl font-semibold tracking-[-0.03em] text-slate-950">
+      <p className="relative z-10 text-sm font-medium" style={{ color: 'var(--sl-text-secondary)' }}>{label}</p>
+      <p className="relative z-10 mt-2 text-xl font-semibold tracking-[-0.03em] transition-colors group-hover:text-[var(--sl-primary)]" style={{ color: 'var(--sl-text-primary)' }}>
         {value}
       </p>
     </article>

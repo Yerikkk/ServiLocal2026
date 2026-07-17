@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import { Chatbot } from "@/components/ui/chatbot";
 
 export default function RootLayout({
   children,
@@ -32,11 +33,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${inter.variable} h-full`} suppressHydrationWarning>
-      <body className="min-h-full flex flex-col bg-[var(--sl-bg)] antialiased">
+      <body className="min-h-full flex flex-col bg-[var(--sl-bg)] antialiased relative">
         <ThemeProvider>
           <SocketProvider>
             <ToastProvider>
               {children}
+              <Chatbot />
             </ToastProvider>
           </SocketProvider>
         </ThemeProvider>
