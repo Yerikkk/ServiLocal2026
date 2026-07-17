@@ -29,6 +29,7 @@ import {
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { TestimonialCarousel } from '@/components/ui/testimonial-carousel';
+import { AnimatedCounter } from '@/components/ui/animated-counter';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -39,21 +40,6 @@ const fadeUp = {
   }),
 };
 
-function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    let start = 0;
-    const duration = 1500;
-    const stepTime = Math.max(duration / value, 16);
-    const timer = setInterval(() => {
-      start += Math.ceil(value / (duration / stepTime));
-      if (start >= value) { setCount(value); clearInterval(timer); }
-      else setCount(start);
-    }, stepTime);
-    return () => clearInterval(timer);
-  }, [value]);
-  return <>{count.toLocaleString()}{suffix}</>;
-}
 
 const categories = [
   { label: 'Electricidad', icon: Zap, color: '#f59e0b' },
@@ -277,12 +263,15 @@ export default function Home() {
             // Alternating zigzag layout
             const isEven = idx % 2 === 0;
             return (
-              <div key={feature.title} className={`sl-card-premium p-8 lg:p-10 flex flex-col justify-center ${isEven ? 'md:translate-y-0' : 'md:translate-y-12'} group`}>
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 text-white shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-3">
+              <div key={feature.title} className={`sl-card-premium sl-glass-premium p-8 lg:p-10 flex flex-col justify-center ${isEven ? 'md:translate-y-0' : 'md:translate-y-12'} group relative overflow-hidden`}>
+                {/* Decorative background glow on hover */}
+                <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-[var(--sl-primary)]/10 blur-3xl transition-opacity opacity-0 group-hover:opacity-100" />
+                
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 text-white shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-[0_0_20px_rgba(30,168,231,0.4)] relative z-10">
                   <Icon className="h-6 w-6" />
                 </div>
-                <h3 className="mt-6 text-2xl font-bold" style={{ color: 'var(--sl-text-primary)' }}>{feature.title}</h3>
-                <p className="mt-4 text-base leading-relaxed" style={{ color: 'var(--sl-text-secondary)' }}>{feature.description}</p>
+                <h3 className="mt-6 text-2xl font-bold relative z-10 transition-colors group-hover:text-[var(--sl-primary)]" style={{ color: 'var(--sl-text-primary)' }}>{feature.title}</h3>
+                <p className="mt-4 text-base leading-relaxed relative z-10" style={{ color: 'var(--sl-text-secondary)' }}>{feature.description}</p>
               </div>
             );
           })}

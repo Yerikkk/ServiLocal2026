@@ -130,17 +130,17 @@
   --sl-shadow-card-hover: 0 8px 30px rgba(30, 168, 231, 0.15), 0 4px 8px rgba(0, 0, 0, 0.2);
 
   /* Tailwind Core Color Overrides for Auto-Dark Mode */
-  --t-white: #111827;
-  --t-slate-50: #030712;
-  --t-slate-100: #1f2937;
-  --t-slate-200: #374151;
-  --t-slate-300: #4b5563;
-  --t-slate-400: #6b7280;
-  --t-slate-500: #9ca3af;
-  --t-slate-600: #d1d5db;
-  --t-slate-700: #e5e7eb;
-  --t-slate-800: #f3f4f6;
-  --t-slate-900: #f9fafb;
+  --t-white: #0f172a;
+  --t-slate-50: #1e293b;
+  --t-slate-100: #334155;
+  --t-slate-200: #475569;
+  --t-slate-300: #64748b;
+  --t-slate-400: #94a3b8;
+  --t-slate-500: #cbd5e1;
+  --t-slate-600: #e2e8f0;
+  --t-slate-700: #f1f5f9;
+  --t-slate-800: #f8fafc;
+  --t-slate-900: #ffffff;
   --t-slate-950: #ffffff;
   
   --t-sky-50: rgba(14, 165, 233, 0.1);
