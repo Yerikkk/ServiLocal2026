@@ -3,6 +3,9 @@
  * Evita rutas como /api/api/... cuando NEXT_PUBLIC_API_URL termina en /api.
  */
 export function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    return '';
+  }
   const raw = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
   return raw.replace(/\/+$/, '').replace(/\/api$/i, '');
 }

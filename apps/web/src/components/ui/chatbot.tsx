@@ -120,7 +120,7 @@ export function Chatbot() {
       {/* Chat Window */}
       <div
         className={cn(
-          "fixed bottom-6 right-6 z-50 flex h-[500px] max-h-[80vh] w-[350px] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl border border-[var(--sl-border)] bg-[var(--sl-surface)] shadow-2xl transition-all duration-300 transform origin-bottom-right sl-animate-slide-up",
+          "fixed bottom-6 right-6 z-50 flex h-[550px] md:h-[600px] max-h-[80vh] w-[380px] md:w-[400px] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl border border-[var(--sl-border)] bg-[var(--sl-surface)] shadow-2xl transition-all duration-300 transform origin-bottom-right",
           isOpen ? "scale-100 opacity-100" : "scale-50 opacity-0 pointer-events-none"
         )}
       >
