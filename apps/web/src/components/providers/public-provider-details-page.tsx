@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
@@ -100,6 +101,7 @@ export function PublicProviderDetailsPage() {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [showRequestForm, setShowRequestForm] = useState(false);
 
   const trustBarWidth = useMemo(
     () => `${Math.max(0, Math.min(100, provider?.trustSummary.score ?? 0))}%`,
@@ -254,33 +256,42 @@ export function PublicProviderDetailsPage() {
         <section className="relative overflow-hidden rounded-[34px] bg-gradient-to-br from-[var(--sl-primary)] via-blue-600 to-indigo-700 text-white shadow-xl sl-animate-slide-up">
           <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
           <div className="absolute -left-10 bottom-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
-          <div className="relative px-7 py-8 md:px-10 md:py-12 z-10">
-            <div className="flex flex-wrap items-center gap-3">
-              {provider.isVerified ? (
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white">
-                  <BadgeCheck className="h-4 w-4" />
-                  Proveedor verificado
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white">
-                  <ShieldCheck className="h-4 w-4" />
-                  Verificación pendiente
-                </span>
-              )}
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 px-7 py-8 md:px-10 md:py-12">
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-3">
+                {provider.isVerified ? (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white">
+                    <BadgeCheck className="h-4 w-4" />
+                    Proveedor verificado
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white">
+                    <ShieldCheck className="h-4 w-4" />
+                    Verificación pendiente
+                  </span>
+                )}
 
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white">
-                <Wrench className="h-4 w-4" />
-                {getServiceName(provider)}
-              </span>
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white">
+                  <Wrench className="h-4 w-4" />
+                  {getServiceName(provider)}
+                </span>
+              </div>
+
+              <h1 className="mt-5 text-4xl font-extrabold tracking-[-0.05em] md:text-5xl">
+                {provider.businessName}
+              </h1>
+
+              <p className="mt-4 max-w-3xl text-lg leading-8 text-white/90">
+                {provider.description}
+              </p>
             </div>
-
-            <h1 className="mt-5 text-4xl font-extrabold tracking-[-0.05em] md:text-5xl">
-              {provider.businessName}
-            </h1>
-
-            <p className="mt-4 max-w-3xl text-lg leading-8 text-white/90">
-              {provider.description}
-            </p>
+            {/* Foto del Proveedor */}
+            <div className="hidden md:flex shrink-0 items-center justify-center">
+              <div className="relative h-36 w-36 overflow-hidden rounded-[24px] border-4 border-white/20 shadow-2xl bg-white/10">
+                {/* Usamos un avatar genérico fotorrealista para el demo basado en si tiene foto. En un caso real vendría de provider.avatarUrl */}
+                <Image src="/images/avatar_patricia.png" alt={provider.responsibleName} fill className="object-cover" />
+              </div>
+            </div>
           </div>
         </section>
 
@@ -474,13 +485,32 @@ export function PublicProviderDetailsPage() {
         </section>
 
         {/* B) Nueva Sección: Formulario de Solicitud de Servicio */}
-        <section>
-          <RequestServiceForm
-            providerId={provider.providerId}
-            providerName={provider.businessName}
-            defaultServiceName={getServiceName(provider)}
-            defaultZone={provider.serviceZone}
-          />
+        <section className="flex flex-col items-center pt-8">
+          {!showRequestForm ? (
+            <button
+              onClick={() => setShowRequestForm(true)}
+              className="group relative flex h-14 w-full max-w-md items-center justify-center gap-3 rounded-full bg-[var(--sl-primary)] px-8 text-lg font-bold text-white shadow-xl transition-all hover:bg-blue-600 hover:shadow-2xl hover:shadow-[var(--sl-primary)]/20 hover:-translate-y-1 active:translate-y-0"
+            >
+              Solicitar servicio ahora
+            </button>
+          ) : (
+            <div className="w-full sl-animate-slide-up">
+              <RequestServiceForm
+                providerId={provider.providerId}
+                providerName={provider.businessName}
+                defaultServiceName={getServiceName(provider)}
+                defaultZone={provider.serviceZone}
+              />
+              <div className="mt-4 text-center">
+                <button 
+                  onClick={() => setShowRequestForm(false)}
+                  className="text-sm font-medium text-slate-500 hover:text-slate-800 transition"
+                >
+                  Cancelar solicitud
+                </button>
+              </div>
+            </div>
+          )}
         </section>
 
         <ReportModal

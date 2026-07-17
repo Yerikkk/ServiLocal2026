@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Wrench, Mail } from 'lucide-react';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
@@ -14,10 +15,10 @@ export function Footer() {
           {/* Brand & Info */}
           <div className="md:col-span-1 sl-animate-slide-up" style={{ animationDelay: '0ms' }}>
             <Link href="/" className="flex items-center gap-2.5 mb-4 inline-flex group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 shadow-sm transition-transform group-hover:scale-110 group-hover:rotate-6">
-                <Wrench className="h-5 w-5 text-white" />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6 overflow-hidden">
+                <Image src="/images/logo.png" alt="ServiLocal Logo" fill className="object-cover p-1" />
               </div>
-              <span className="text-xl font-bold tracking-[-0.03em]" style={{ color: 'var(--sl-text-primary)' }}>
+              <span className="text-xl font-bold tracking-[-0.03em] transition-colors group-hover:text-[var(--sl-primary)]" style={{ color: 'var(--sl-text-primary)' }}>
                 Servi<span className="text-[var(--sl-primary)]">Local</span>
               </span>
             </Link>
@@ -44,11 +45,11 @@ export function Footer() {
           <div className="sl-animate-slide-up" style={{ animationDelay: '100ms' }}>
             <h3 className="font-semibold mb-4" style={{ color: 'var(--sl-text-primary)' }}>Plataforma</h3>
             <ul className="space-y-3 text-sm" style={{ color: 'var(--sl-text-secondary)' }}>
-              <li><Link href="/servicios" className="hover:text-[var(--sl-primary)] transition-colors">Catálogo de servicios</Link></li>
-              <li><Link href="/proveedores" className="hover:text-[var(--sl-primary)] transition-colors">Buscar proveedores</Link></li>
-              <li><Link href="/sobre-nosotros" className="hover:text-[var(--sl-primary)] transition-colors">Cómo funciona</Link></li>
-              <li><Link href="/registrarse" className="hover:text-[var(--sl-primary)] transition-colors">Únete como profesional</Link></li>
-              <li><Link href="/panel/cliente/recompensas" className="hover:text-[var(--sl-primary)] transition-colors">Programa de puntos</Link></li>
+              <li><Link href="/servicios" className="hover:text-[var(--sl-primary)] hover:translate-x-1 inline-block transition-all">Catálogo de servicios</Link></li>
+              <li><Link href="/proveedores" className="hover:text-[var(--sl-primary)] hover:translate-x-1 inline-block transition-all">Buscar proveedores</Link></li>
+              <li><Link href="/sobre-nosotros" className="hover:text-[var(--sl-primary)] hover:translate-x-1 inline-block transition-all">Cómo funciona</Link></li>
+              <li><Link href="/registrarse" className="hover:text-[var(--sl-primary)] hover:translate-x-1 inline-block transition-all">Únete como profesional</Link></li>
+              <li><Link href="/panel/cliente/recompensas" className="hover:text-[var(--sl-primary)] hover:translate-x-1 inline-block transition-all">Programa de puntos</Link></li>
             </ul>
           </div>
 
@@ -67,10 +68,10 @@ export function Footer() {
           <div className="sl-animate-slide-up" style={{ animationDelay: '300ms' }}>
             <h3 className="font-semibold mb-4" style={{ color: 'var(--sl-text-primary)' }}>Legal</h3>
             <ul className="space-y-3 text-sm" style={{ color: 'var(--sl-text-secondary)' }}>
-              <li><Link href="/terminos" className="hover:text-[var(--sl-primary)] transition-colors">Términos de servicio</Link></li>
-              <li><Link href="/privacidad" className="hover:text-[var(--sl-primary)] transition-colors">Política de privacidad</Link></li>
-              <li><Link href="/cookies" className="hover:text-[var(--sl-primary)] transition-colors">Política de cookies</Link></li>
-              <li><Link href="/confianza" className="hover:text-[var(--sl-primary)] transition-colors">Auditoría y confianza</Link></li>
+              <li><Link href="/terminos" className="hover:text-[var(--sl-primary)] hover:translate-x-1 inline-block transition-all">Términos de servicio</Link></li>
+              <li><Link href="/privacidad" className="hover:text-[var(--sl-primary)] hover:translate-x-1 inline-block transition-all">Política de privacidad</Link></li>
+              <li><Link href="/cookies" className="hover:text-[var(--sl-primary)] hover:translate-x-1 inline-block transition-all">Política de cookies</Link></li>
+              <li><Link href="/confianza" className="hover:text-[var(--sl-primary)] hover:translate-x-1 inline-block transition-all">Auditoría y confianza</Link></li>
             </ul>
           </div>
         </div>
