@@ -106,13 +106,32 @@ export function Chatbot() {
 
     setTimeout(() => {
       setIsTyping(false);
+      
+      const lowerText = text.toLowerCase();
+      let replyText = 'Soy un asistente virtual en entrenamiento y aún estoy aprendiendo a entender mensajes libres. Por favor, selecciona una de mis opciones o contáctanos para ayuda específica.';
+      let nextOptions = INITIAL_MESSAGE.options;
+
+      if (lowerText.includes('hola') || lowerText.includes('buenos d') || lowerText.includes('buenas tardes') || lowerText.includes('buenas noches')) {
+        replyText = '¡Hola! Qué gusto saludarte. ¿En qué te puedo ayudar hoy en ServiLocal?';
+        nextOptions = ['¿Es gratis usar ServiLocal?', '¿Cómo contrato a un proveedor?'];
+      } else if (lowerText.includes('servilocal')) {
+        replyText = 'ServiLocal es la plataforma para conectar clientes con proveedores de servicios verificados en tu zona. ¡Confianza y calidad a un clic!';
+        nextOptions = ['¿Es gratis usar ServiLocal?', '¿Cómo funciona la barra de confianza?'];
+      } else if (lowerText.includes('gratis') || lowerText.includes('costo') || lowerText.includes('precio') || lowerText.includes('pagar')) {
+        replyText = 'El uso de la plataforma es completamente gratuito. El costo del servicio en sí lo negocias y acuerdas directamente con el profesional.';
+        nextOptions = ['¿Cómo contrato a un proveedor?', '¿Qué es la barra de confianza?'];
+      } else if (lowerText.includes('problema') || lowerText.includes('ayuda') || lowerText.includes('soporte') || lowerText.includes('reclamo')) {
+        replyText = 'Si tienes un inconveniente con un servicio o necesitas ayuda, puedes usar el botón "Reportar" en el perfil del proveedor o contactar a soporte@servilocal.com. ¡Estamos para ayudarte!';
+        nextOptions = ['Volver al inicio'];
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           sender: 'bot',
-          text: 'Soy un asistente virtual en entrenamiento y aún estoy aprendiendo a entender mensajes libres. Por favor, selecciona una de mis opciones o contáctanos para ayuda específica.',
-          options: INITIAL_MESSAGE.options,
+          text: replyText,
+          options: nextOptions,
         }
       ]);
     }, 1200);
