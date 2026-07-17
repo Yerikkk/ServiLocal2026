@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import { Logo } from '@/components/ui/logo';
 import { Wrench, Mail } from 'lucide-react';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
+// ... (en el componente Footer)
 export function Footer() {
   return (
     <footer className="relative border-t border-[var(--sl-border)] pt-16 pb-8 overflow-hidden" style={{ background: 'var(--sl-surface)' }}>
@@ -15,8 +16,8 @@ export function Footer() {
           {/* Brand & Info */}
           <div className="md:col-span-1 sl-animate-slide-up" style={{ animationDelay: '0ms' }}>
             <Link href="/" className="flex items-center gap-2.5 mb-4 inline-flex group">
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6 overflow-hidden">
-                <Image src="/images/logo.png" alt="ServiLocal Logo" fill className="object-cover p-1" />
+              <div className="flex h-10 w-10 items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+                <Logo className="h-10 w-10 text-[var(--sl-primary)] drop-shadow-sm" />
               </div>
               <span className="text-xl font-bold tracking-[-0.03em] transition-colors group-hover:text-[var(--sl-primary)]" style={{ color: 'var(--sl-text-primary)' }}>
                 Servi<span className="text-[var(--sl-primary)]">Local</span>

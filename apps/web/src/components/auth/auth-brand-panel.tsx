@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { Logo } from '@/components/ui/logo';
 
 export function AuthBrandPanel() {
   return (
@@ -18,8 +19,8 @@ export function AuthBrandPanel() {
           transition={{ duration: 0.45 }}
           className="flex items-center gap-4"
         >
-          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm overflow-hidden">
-            <Image src="/images/logo.png" alt="ServiLocal Logo" fill className="object-cover p-1" priority />
+          <div className="flex h-12 w-12 items-center justify-center">
+            <Logo className="h-12 w-12 text-white drop-shadow-sm" />
           </div>
           <span className="text-[1.95rem] font-extrabold tracking-[-0.03em]">
             ServiLocal

@@ -41,6 +41,7 @@ import { useTheme } from '@/components/ui/theme-provider';
 import { useEffect } from 'react';
 import { NotificationsBell } from '@/components/ui/notifications-bell';
 import { logoutSession } from '@/lib/auth-session';
+import { Logo } from '@/components/ui/logo';
 
 type SidebarLink = {
   href: string;
@@ -124,8 +125,8 @@ export function DashboardShell({ children, role, userName, userEmail, notificati
     <>
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-4 py-5">
-        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden">
-          <Image src="/images/logo.png" alt="ServiLocal Logo" fill className="object-cover p-1" priority />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center">
+          <Logo className="h-9 w-9 text-[var(--sl-primary)] drop-shadow-sm" />
         </div>
         {!collapsed && (
           <span className="text-lg font-extrabold tracking-[-0.04em]" style={{ color: 'var(--sl-text-primary)' }}>
