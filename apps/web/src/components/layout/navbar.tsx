@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { Menu, Wrench, X, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useTheme } from '@/components/ui/theme-provider';
+import { Logo } from '@/components/ui/logo';
 
 import { fetchAuthMe } from '@/lib/auth-session';
 
@@ -64,10 +65,10 @@ export function Navbar() {
       )}>
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-110 group-hover:rotate-3 overflow-hidden">
-            <Image src="/images/logo.png" alt="ServiLocal Logo" fill className="object-cover p-1" priority />
+          <div className="flex h-12 w-12 items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-rotate-6">
+            <Logo className="h-12 w-12 text-[var(--sl-primary)] drop-shadow-md" />
           </div>
-          <span className="text-xl font-extrabold tracking-[-0.04em]" style={{ color: 'var(--sl-text-primary)' }}>
+          <span className="text-2xl font-extrabold tracking-[-0.04em]" style={{ color: 'var(--sl-text-primary)' }}>
             Servi<span className="text-[var(--sl-primary)]">Local</span>
           </span>
         </Link>

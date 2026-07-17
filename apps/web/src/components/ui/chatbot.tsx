@@ -120,6 +120,9 @@ export function Chatbot() {
       } else if (lowerText.includes('gratis') || lowerText.includes('costo') || lowerText.includes('precio') || lowerText.includes('pagar')) {
         replyText = 'El uso de la plataforma es completamente gratuito. El costo del servicio en sí lo negocias y acuerdas directamente con el profesional.';
         nextOptions = ['¿Cómo contrato a un proveedor?', '¿Qué es la barra de confianza?'];
+      } else if (lowerText.includes('registro') || lowerText.includes('registrarse') || lowerText.includes('crear cuenta') || lowerText.includes('registrarme') || lowerText.includes('unirme')) {
+        replyText = 'Puedes registrarte haciendo clic en el botón "Registrarse" en la parte superior derecha de la pantalla. Puedes elegir crear una cuenta como Cliente (para buscar servicios) o como Proveedor (para ofrecer tus servicios).';
+        nextOptions = ['¿Cómo funciona la barra de confianza?', 'Volver al inicio'];
       } else if (lowerText.includes('problema') || lowerText.includes('ayuda') || lowerText.includes('soporte') || lowerText.includes('reclamo')) {
         replyText = 'Si tienes un inconveniente con un servicio o necesitas ayuda, puedes usar el botón "Reportar" en el perfil del proveedor o contactar a soporte@servilocal.com. ¡Estamos para ayudarte!';
         nextOptions = ['Volver al inicio'];
