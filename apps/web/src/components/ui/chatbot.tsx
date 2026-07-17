@@ -47,6 +47,8 @@ export function Chatbot() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [inputValue, setInputValue] = useState('');
+
   // Initialize chat when opened first time
   useEffect(() => {
     if (isOpen && messages.length === 0) {
@@ -64,14 +66,10 @@ export function Chatbot() {
   }, [messages, isTyping]);
 
   const handleOptionClick = (option: string) => {
-    // 1. Add user message
     const userMsgId = Date.now().toString();
     setMessages((prev) => [...prev, { id: userMsgId, sender: 'user', text: option }]);
-    
-    // 2. Show typing indicator
     setIsTyping(true);
 
-    // 3. Add bot reply after delay
     setTimeout(() => {
       setIsTyping(false);
       const flow = PREDEFINED_FLOWS[option];
@@ -98,6 +96,26 @@ export function Chatbot() {
         ]);
       }
     }, 1000);
+  };
+
+  const handleTextSubmit = (text: string) => {
+    const userMsgId = Date.now().toString();
+    setMessages((prev) => [...prev, { id: userMsgId, sender: 'user', text }]);
+    setInputValue('');
+    setIsTyping(true);
+
+    setTimeout(() => {
+      setIsTyping(false);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          sender: 'bot',
+          text: 'Soy un asistente virtual en entrenamiento y aún estoy aprendiendo a entender mensajes libres. Por favor, selecciona una de mis opciones o contáctanos para ayuda específica.',
+          options: INITIAL_MESSAGE.options,
+        }
+      ]);
+    }, 1200);
   };
 
   return (
@@ -172,11 +190,12 @@ export function Chatbot() {
         </div>
 
         {/* Options / Input Area */}
-        <div className="border-t border-[var(--sl-border)] bg-[var(--sl-surface)] p-3">
-          {messages.length > 0 && messages[messages.length - 1].options && !isTyping ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs text-[var(--sl-text-secondary)] mb-1">Opciones rápidas:</p>
-              <div className="flex flex-wrap gap-2">
+        <div className="border-t border-[var(--sl-border)] bg-[var(--sl-surface)] flex flex-col">
+          {/* Quick Options */}
+          {messages.length > 0 && messages[messages.length - 1].options && !isTyping && (
+            <div className="p-3 border-b border-[var(--sl-border)]/50 bg-[var(--sl-surface-raised)]">
+              <p className="text-[11px] font-medium text-[var(--sl-text-secondary)] mb-2">Sugerencias rápidas:</p>
+              <div className="flex flex-wrap gap-1.5">
                 {messages[messages.length - 1].options?.map((opt) => (
                   <button
                     key={opt}
@@ -188,11 +207,34 @@ export function Chatbot() {
                 ))}
               </div>
             </div>
-          ) : (
-            <div className="text-xs text-center text-[var(--sl-text-secondary)] py-2">
-              {isTyping ? 'El asistente está escribiendo...' : 'Selecciona una opción de arriba o reinicia el chat.'}
-            </div>
           )}
+
+          {/* Text Input */}
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (inputValue.trim() && !isTyping) {
+                handleTextSubmit(inputValue);
+              }
+            }}
+            className="flex items-center gap-2 p-3"
+          >
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Escribe un mensaje..."
+              disabled={isTyping}
+              className="flex-1 bg-[var(--sl-bg)] border border-[var(--sl-border)] rounded-full px-4 py-2 text-sm outline-none transition-colors focus:border-[var(--sl-primary)] disabled:opacity-50"
+            />
+            <button
+              type="submit"
+              disabled={!inputValue.trim() || isTyping}
+              className="flex items-center justify-center h-9 w-9 rounded-full bg-[var(--sl-primary)] text-white transition-all hover:bg-[var(--sl-primary-hover)] disabled:opacity-50 disabled:hover:bg-[var(--sl-primary)]"
+            >
+              <Send className="h-4 w-4 ml-0.5" />
+            </button>
+          </form>
         </div>
       </div>
     </>

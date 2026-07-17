@@ -98,7 +98,7 @@ export function TestimonialCarousel() {
         </div>
 
         <div
-          className="relative"
+          className="relative overflow-hidden py-10"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
@@ -122,16 +122,16 @@ export function TestimonialCarousel() {
                 <div
                   key={`${index}-${current}`}
                   className={cn(
-                    "sl-card-premium p-8 bg-gradient-to-br transition-all duration-700 sl-animate-carousel-in",
+                    "sl-card-premium p-8 bg-gradient-to-br transition-all duration-700 sl-animate-carousel-in group",
                     gradientBgs[index],
-                    isCenter ? "scale-105 z-10 shadow-xl border-[var(--sl-primary)]/30" : "scale-95 opacity-80 hover:opacity-100 blur-[1px] hover:blur-none"
+                    isCenter ? "scale-105 z-10 shadow-xl border-[var(--sl-primary)]/30 hover:-translate-y-2" : "scale-95 opacity-80 hover:opacity-100 blur-[1px] hover:blur-none hover:scale-100 hover:-translate-y-1"
                   )}
                   style={{ animationDelay: `${pos * 80}ms` }}
                 >
                   {/* Quote icon */}
                   <div className="mb-5 relative">
-                    <Quote className="h-10 w-10 text-[var(--sl-primary)] opacity-20 absolute -top-4 -left-2" />
-                    <Quote className="h-6 w-6 text-[var(--sl-primary)] relative z-10" />
+                    <Quote className="h-10 w-10 text-[var(--sl-primary)] opacity-20 absolute -top-4 -left-2 transition-transform duration-500 group-hover:-translate-y-2 group-hover:opacity-40" />
+                    <Quote className="h-6 w-6 text-[var(--sl-primary)] relative z-10 transition-transform duration-500 group-hover:scale-110" />
                   </div>
 
                   {/* Content */}
@@ -144,14 +144,14 @@ export function TestimonialCarousel() {
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star
                         key={i}
-                        className={`h-4 w-4 ${i < t.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200'}`}
+                        className={`h-4 w-4 transition-transform duration-300 group-hover:scale-110 ${i < t.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200 dark:text-slate-700 dark:fill-slate-700'}`}
                       />
                     ))}
                   </div>
 
                   {/* Author */}
-                  <div className="flex items-center gap-4 mt-6 pt-5 border-t border-[var(--sl-border-light)]">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 text-white font-bold text-lg shadow-md ring-2 ring-white dark:ring-slate-800">
+                  <div className="flex items-center gap-4 mt-6 pt-5 border-t border-[var(--sl-border-light)] transition-colors group-hover:border-[var(--sl-primary)]/20">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 text-white font-bold text-lg shadow-md ring-2 ring-white dark:ring-slate-800 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
                       {t.avatar}
                     </div>
                     <div>
