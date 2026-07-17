@@ -38,7 +38,7 @@ export class AuthController {
     const cookieOptions = (maxAge?: number) => ({
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
       ...(cookieDomain ? { domain: cookieDomain } : {}),
       ...(maxAge ? { maxAge } : {}),
@@ -67,7 +67,7 @@ export class AuthController {
     const baseOpts = {
       path: '/',
       secure: isProd,
-      sameSite: (isProd ? 'strict' : 'lax') as 'strict' | 'lax',
+      sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
       ...(cookieDomain ? { domain: cookieDomain } : {}),
     };
 
