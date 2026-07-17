@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
@@ -123,8 +124,8 @@ export function DashboardShell({ children, role, userName, userEmail, notificati
     <>
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-4 py-5">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--sl-primary)] shadow-sm">
-          <Wrench className="h-[18px] w-[18px] text-white" />
+        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden">
+          <Image src="/images/logo.png" alt="ServiLocal Logo" fill className="object-cover p-1" priority />
         </div>
         {!collapsed && (
           <span className="text-lg font-extrabold tracking-[-0.04em]" style={{ color: 'var(--sl-text-primary)' }}>

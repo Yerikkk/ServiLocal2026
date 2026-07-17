@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Menu, Wrench, X, Moon, Sun } from 'lucide-react';
@@ -63,8 +64,8 @@ export function Navbar() {
       )}>
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-110 group-hover:rotate-3">
-            <Wrench className="h-5 w-5 text-white transition-transform group-hover:animate-bounce" />
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-110 group-hover:rotate-3 overflow-hidden">
+            <Image src="/images/logo.png" alt="ServiLocal Logo" fill className="object-cover p-1" priority />
           </div>
           <span className="text-xl font-extrabold tracking-[-0.04em]" style={{ color: 'var(--sl-text-primary)' }}>
             Servi<span className="text-[var(--sl-primary)]">Local</span>

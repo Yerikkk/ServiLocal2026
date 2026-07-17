@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
@@ -16,35 +17,35 @@ const testimonials: Testimonial[] = [
   {
     name: 'María González',
     role: 'Cliente frecuente',
-    avatar: 'M',
+    avatar: '/images/avatar_maria.png',
     content: 'ServiLocal me ayudó a encontrar un electricista de confianza en menos de 30 minutos. La barra de confianza me dio seguridad total.',
     rating: 5,
   },
   {
     name: 'Carlos Mendoza',
     role: 'Proveedor verificado',
-    avatar: 'C',
+    avatar: '/images/avatar_carlos.png',
     content: 'Desde que me registré como proveedor, recibo solicitudes constantes. El sistema de confianza hace que los clientes confíen más en mí.',
     rating: 5,
   },
   {
     name: 'Ana Lucía Paredes',
     role: 'Cliente',
-    avatar: 'A',
+    avatar: '/images/avatar_ana.png',
     content: 'Me encanta poder negociar directamente con el proveedor por el chat. Todo es transparente y seguro.',
     rating: 4,
   },
   {
     name: 'Roberto Silva',
     role: 'Proveedor de plomería',
-    avatar: 'R',
+    avatar: '/images/avatar_roberto.png',
     content: 'Los puntos SL y el sistema de recompensas me motivan a dar un mejor servicio. ¡Mi confianza ya está en 95!',
     rating: 5,
   },
   {
     name: 'Patricia Huamán',
     role: 'Cliente',
-    avatar: 'P',
+    avatar: '/images/avatar_patricia.png',
     content: 'Necesitaba urgentemente un cerrajero y en ServiLocal encontré uno verificado en mi zona. Excelente plataforma.',
     rating: 5,
   },
@@ -151,8 +152,8 @@ export function TestimonialCarousel() {
 
                   {/* Author */}
                   <div className="flex items-center gap-4 mt-6 pt-5 border-t border-[var(--sl-border-light)] transition-colors group-hover:border-[var(--sl-primary)]/20">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 text-white font-bold text-lg shadow-md ring-2 ring-white dark:ring-slate-800 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
-                      {t.avatar}
+                    <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--sl-primary)] to-blue-600 shadow-md ring-2 ring-white dark:ring-slate-800 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 overflow-hidden">
+                      <Image src={t.avatar} alt={t.name} fill className="object-cover" sizes="48px" />
                     </div>
                     <div>
                       <p className="text-sm font-bold" style={{ color: 'var(--sl-text-primary)' }}>{t.name}</p>

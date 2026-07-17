@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MapPin } from 'lucide-react';
+import Image from 'next/image';
 
 export function AuthBrandPanel() {
   return (
@@ -18,8 +18,8 @@ export function AuthBrandPanel() {
           transition={{ duration: 0.45 }}
           className="flex items-center gap-4"
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/14 backdrop-blur-sm">
-            <MapPin className="h-5 w-5" />
+          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm overflow-hidden">
+            <Image src="/images/logo.png" alt="ServiLocal Logo" fill className="object-cover p-1" priority />
           </div>
           <span className="text-[1.95rem] font-extrabold tracking-[-0.03em]">
             ServiLocal
