@@ -16,8 +16,8 @@ export function Footer() {
           {/* Brand & Info */}
           <div className="md:col-span-1 sl-animate-slide-up" style={{ animationDelay: '0ms' }}>
             <Link href="/" className="flex items-center gap-2.5 mb-4 inline-flex group">
-              <div className="flex h-10 w-10 items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
-                <Logo className="h-10 w-10" />
+              <div className="flex h-11 w-11 items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+                <Logo className="h-11 w-11" />
               </div>
               <span className="text-xl font-bold tracking-[-0.03em] transition-colors group-hover:text-[var(--sl-primary)]" style={{ color: 'var(--sl-text-primary)' }}>
                 Servi<span className="text-[var(--sl-primary)]">Local</span>

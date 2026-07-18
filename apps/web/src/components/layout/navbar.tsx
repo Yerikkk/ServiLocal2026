@@ -64,9 +64,9 @@ export function Navbar() {
         scrolled ? "h-16" : "h-20"
       )}>
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-12 w-12 items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-rotate-6">
-            <Logo className="h-12 w-12" />
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="flex h-[42px] w-[42px] items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-rotate-6">
+            <Logo className="h-[42px] w-[42px]" />
           </div>
           <span className="text-2xl font-extrabold tracking-[-0.04em]" style={{ color: 'var(--sl-text-primary)' }}>
             Servi<span className="text-[var(--sl-primary)]">Local</span>

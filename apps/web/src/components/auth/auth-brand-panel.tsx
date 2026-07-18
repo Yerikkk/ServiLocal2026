@@ -19,8 +19,8 @@ export function AuthBrandPanel() {
           transition={{ duration: 0.45 }}
           className="flex items-center gap-4"
         >
-          <div className="flex h-12 w-12 items-center justify-center">
-            <Logo className="h-12 w-12" variant="white" />
+          <div className="flex h-[46px] w-[46px] items-center justify-center">
+            <Logo className="h-[46px] w-[46px]" variant="white" />
           </div>
           <span className="text-[1.95rem] font-extrabold tracking-[-0.03em]">
             ServiLocal
