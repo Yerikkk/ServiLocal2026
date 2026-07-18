@@ -6,7 +6,7 @@ import {
   BadgeCheck,
   CheckCircle,
   Clock,
-  DollarSign,
+  Banknote,
   Edit3,
   Hammer,
   KeyRound,
@@ -683,14 +683,14 @@ export function ProviderServicesPanel() {
                       </span>
                       {svc.referencePrice && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 font-bold text-emerald-700">
-                          <DollarSign className="h-3 w-3" />
+                          <Banknote className="h-3 w-3" />
                           S/ {parseFloat(svc.referencePrice).toFixed(2)}
                         </span>
                       )}
                       {svc.estimatedTime && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 font-medium text-blue-700">
                           <Clock className="h-3 w-3" />
-                          {svc.estimatedTime}
+                          Tiempo est. {svc.estimatedTime}
                         </span>
                       )}
                       {svc._count?.favorites !== undefined && svc._count.favorites > 0 && (

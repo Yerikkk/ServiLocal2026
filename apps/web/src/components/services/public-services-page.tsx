@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Clock,
   DollarSign,
+  Banknote,
   Hammer,
   KeyRound,
   Layers,
@@ -332,7 +333,7 @@ export function PublicServicesPage() {
             <KPICard
               title="Precio referencial promedio"
               value={avgPrice ? `S/ ${avgPrice}` : '—'}
-              icon={<DollarSign className="h-5 w-5" />}
+              icon={<Banknote className="h-5 w-5" />}
               iconBg="bg-violet-100 text-violet-600"
             />
           </section>
@@ -530,7 +531,7 @@ export function PublicServicesPage() {
                         {service.referencePrice && (
                           <div className="flex items-center gap-2 text-sm">
                             <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                              <DollarSign className="h-3.5 w-3.5" />
+                              <Banknote className="h-3.5 w-3.5" />
                             </div>
                             <span className="font-bold" style={{ color: 'var(--sl-text-primary)' }}>
                               S/ {parseFloat(service.referencePrice).toFixed(2)}
@@ -546,7 +547,7 @@ export function PublicServicesPage() {
                               <Clock className="h-3.5 w-3.5" />
                             </div>
                             <span style={{ color: 'var(--sl-text-secondary)' }}>
-                              {service.estimatedTime}
+                              Tiempo est. {service.estimatedTime}
                             </span>
                           </div>
                         )}
