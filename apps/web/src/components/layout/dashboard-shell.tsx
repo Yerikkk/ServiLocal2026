@@ -126,7 +126,7 @@ export function DashboardShell({ children, role, userName, userEmail, notificati
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-4 py-5">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center">
-          <Logo className="h-9 w-9 text-[var(--sl-primary)] drop-shadow-sm" />
+          <Logo className="h-9 w-9" />
         </div>
         {!collapsed && (
           <span className="text-lg font-extrabold tracking-[-0.04em]" style={{ color: 'var(--sl-text-primary)' }}>

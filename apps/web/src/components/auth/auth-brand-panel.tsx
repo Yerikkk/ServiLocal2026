@@ -20,7 +20,7 @@ export function AuthBrandPanel() {
           className="flex items-center gap-4"
         >
           <div className="flex h-12 w-12 items-center justify-center">
-            <Logo className="h-12 w-12 text-white drop-shadow-sm" />
+            <Logo className="h-12 w-12" variant="white" />
           </div>
           <span className="text-[1.95rem] font-extrabold tracking-[-0.03em]">
             ServiLocal

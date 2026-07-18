@@ -66,7 +66,7 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="flex h-12 w-12 items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-rotate-6">
-            <Logo className="h-12 w-12 text-[var(--sl-primary)] drop-shadow-md" />
+            <Logo className="h-12 w-12" />
           </div>
           <span className="text-2xl font-extrabold tracking-[-0.04em]" style={{ color: 'var(--sl-text-primary)' }}>
             Servi<span className="text-[var(--sl-primary)]">Local</span>
