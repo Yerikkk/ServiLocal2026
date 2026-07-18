@@ -44,19 +44,19 @@ export function Logo({ className, variant = 'default' }: LogoProps) {
       {/* ── Wrench: classic open-end spanner lying horizontal ── */}
       {/* Main handle (thinner bar) */}
       <rect
-        x="34" y="89"
-        width="52" height="8"
-        rx="4"
+        x="32" y="89"
+        width="54" height="8"
+        rx="2"
         fill={iconFill}
       />
-      {/* Left head: open jaw facing LEFT (U-shape opening outward) */}
+      {/* Left head: open jaw facing LEFT */}
       <path
-        d="M34 84a10 10 0 0 0 0 18h4v-5h-2a5 5 0 0 1 0-8h2v-5h-4z"
+        d="M 32 81 A 12 12 0 0 0 21 87 L 29 88 L 29 98 L 21 99 A 12 12 0 0 0 32 105 Z"
         fill={iconFill}
       />
       {/* Right head: closed ring (box end) */}
-      <circle cx="86" cy="93" r="11" fill={iconFill} />
-      <circle cx="86" cy="93" r="5.5" fill={bgFill} />
+      <circle cx="86" cy="93" r="12" fill={iconFill} />
+      <circle cx="86" cy="93" r="6" fill={bgFill} />
     </svg>
   );
 }
