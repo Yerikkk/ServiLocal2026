@@ -1,7 +1,7 @@
 # CONTEXTO DEL SISTEMA — ServiLocal2026
 
 **Documento Informativo de Referencia**
-**Última Actualización:** 16 de junio de 2026
+**Última Actualización:** 19 de julio de 2026
 **Tipo:** Guía de contexto para desarrolladores, evaluadores y profesores
 
 ---
@@ -110,7 +110,7 @@ graph TB
 | @nestjs/schedule | 6.1.3 | Tareas programadas (cron) |
 | class-validator | 0.15.1 | Validación de DTOs |
 
-### 3.3 Infraestructura
+### 3.3 Infraestructura (Desarrollo Local)
 
 | Componente | Versión/Herramienta | Puerto |
 |---|---|---|
@@ -121,6 +121,14 @@ graph TB
 | pnpm | 10.33.2 | Gestor de paquetes |
 | Node.js | 18+ | Runtime |
 
+### 3.4 Infraestructura (Producción / Cloud)
+
+| Componente | Proveedor / Servicio | Propósito |
+|---|---|---|
+| Frontend Hosting | Vercel | Alojamiento del cliente web (Next.js) |
+| Base de Datos | Supabase (PostgreSQL) | Persistencia de datos gestionada en la nube |
+| Backend API | Vercel Serverless / Render | Ejecución de la API y lógica de negocio |
+
 ---
 
 ## 4. ESTRUCTURA DEL MONOREPO
@@ -130,7 +138,7 @@ ServiLocal2026/
 ├── apps/
 │   ├── api/                        # Backend NestJS
 │   │   ├── prisma/
-│   │   │   ├── schema.prisma       # Esquema de base de datos (14 modelos)
+│   │   │   ├── schema.prisma       # Esquema de base de datos (15 modelos)
 │   │   │   ├── seed.ts             # Datos iniciales (~36 usuarios)
 │   │   │   └── migrations/         # Migraciones de DB
 │   │   ├── src/
@@ -196,6 +204,10 @@ ServiLocal2026/
 │   └── docker-compose.yml          # PostgreSQL + Redis + Mailpit
 ├── scripts/
 │   └── tester.ts                    # Script de verificación rápida
+├── capture_extra.py                 # Script de captura adicional E2E
+├── generate_reportlab.py            # Script de generación de reportes PDF
+├── mermaid_render.html              # Herramienta para renderizar diagramas
+├── take_screenshots.py              # Script para generar capturas de pantalla
 ├── guias_sistema/                   # Documentación operativa
 ├── docs/                            # Documentación adicional
 ├── package.json                     # Root (scripts dev, build, lint)
@@ -206,7 +218,7 @@ ServiLocal2026/
 
 ## 5. BASE DE DATOS
 
-### 5.1 Esquema (14 modelos + 1 config)
+### 5.1 Esquema (15 modelos + 1 config)
 
 ```mermaid
 erDiagram
