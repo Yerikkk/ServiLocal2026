@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ficha Ejecutiva ServiLocal 2026</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #1e293b;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+        .page {
+            page-break-after: always;
+            position: relative;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .page:last-child {
+            page-break-after: auto;
+        }
+        
+        /* Page 1 Styles */
+        .cover-page {
+            text-align: center;
+            padding: 10mm 15mm;
+            border-top: 15px solid #1e3a8a;
+            border-bottom: 15px solid #1e3a8a;
+            height: calc(100vh - 40mm - 30px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        }
+        .logo-container {
+            margin-bottom: 30px;
+        }
+        .logo {
+            max-width: 250px;
+            max-height: 120px;
+            object-fit: contain;
+        }
+        .inst-title {
+            font-size: 26px;
+            color: #1e3a8a;
+            font-weight: 900;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .demoday-title {
+            font-size: 20px;
+            color: #ef4444;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        .doc-title {
+            font-size: 24px;
+            color: #0f172a;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+        
+        .project-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 0 auto 30px;
+            width: 90%;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+        
+        .project-label {
+            font-size: 14px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .project-title {
+            font-size: 22px;
+            color: #1e3a8a;
+            font-weight: bold;
+        }
+        
+        .team-info {
+            width: 85%;
+            margin: 0 auto;
+            text-align: left;
+            background-color: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #3b82f6;
+        }
+        .team-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .team-info td {
+            padding: 8px;
+            vertical-align: top;
+            font-size: 14px;
+        }
+        .team-label {
+            font-weight: bold;
+            width: 45%;
+            text-align: right;
+            padding-right: 20px;
+            color: #334155;
+        }
+        
+        /* Inner Pages Styles */
+        .header {
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            color: #64748b;
+            font-size: 12px;
+        }
+        .header strong {
+            color: #1e293b;
+        }
+        
+        h2 {
+            color: #1e3a8a;
+            font-size: 16px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 10px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+            font-size: 13px;
+        }
+        
+        .screenshot-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .screenshot {
+            width: 90%;
+            max-height: 280px;
+            object-fit: contain;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .tech-table th, .tech-table td {
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            text-align: left;
+            font-size: 13px;
+        }
+        .tech-table th {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            width: 30%;
+        }
+        
+        ul {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            font-size: 13px;
+        }
+        li {
+            margin-bottom: 8px;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PÁGINA 1: Carátula Institucional -->
+    <div class="page cover-page">
+        <div>
+            <div class="logo-container">
+                <img src="file:///c:/Proyectos2026/ServiLocal2026/guias_sistema/Hola.png" class="logo" alt="Logo IESTP">
+            </div>
+            
+            <div class="inst-title">IESTP Luciano Castillo Colonna</div>
+            <div class="demoday-title">DEMODAY</div>
+            <div class="doc-title">PITCH DE INNOVACIÓN TECNOLÓGICA<br><span style="font-size:18px; font-weight:normal;">FICHA EJECUTIVA DEL PROYECTO</span></div>
+            
+            <div class="project-card">
+                <div class="project-label">Nombre del Proyecto</div>
+                <div class="project-title">ServiLocal 2026<br><span style="font-size:16px; font-weight:normal; color:#475569;">Plataforma de Conexión y Gestión de Servicios Locales</span></div>
+            </div>
+        </div>
+        
+        <div class="team-info">
+            <table>
+                <tr>
+                    <td class="team-label">Integrantes:</td>
+                    <td>
+                        1- Yerik Joshua Martínez Guerrero<br>
+                        2- Eduardo Antonio Álvarez Álvarez<br>
+                        3- Jesua Ramírez Chira
+                    </td>
+                </tr>
+                <tr>
+                    <td class="team-label">Programa de Estudios:</td>
+                    <td>Desarrollo de Sistemas de Información</td>
+                </tr>
+                <tr>
+                    <td class="team-label">Semestre / Ciclo:</td>
+                    <td>V Ciclo</td>
+                </tr>
+                <tr>
+                    <td class="team-label">Fecha:</td>
+                    <td>19 de julio de 2026</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- PÁGINA 2: Ficha Ejecutiva - Parte 1 -->
+    <div class="page">
+        <div class="header">
+            <strong>Proyecto:</strong> ServiLocal 2026
+        </div>
+        
+        <h2>Descripción del Proyecto</h2>
+        <p><strong>ServiLocal 2026</strong> es un ecosistema digital web diseñado estratégicamente para conectar a proveedores de oficios (plomeros, electricistas, limpieza, etc.) con clientes locales. Su propósito principal es resolver la falta de confianza en la contratación de servicios técnicos mediante un entorno completamente seguro. La plataforma integra gestión transaccional integral, chat bidireccional en tiempo real y un sólido sistema de reputación (Trust Score), garantizando transparencia, seguridad y agilidad en cada interacción.</p>
+        
+        <div class="screenshot-container">
+            <img src="C:/Proyectos2026/ServiLocal2026/guias_sistema/figura_8.png" class="screenshot" alt="Captura del Sistema - Home">
+        </div>
+
+        <h2>Público Objetivo</h2>
+        <p><strong>Clientes:</strong> Personas y hogares en una zona geográfica determinada que necesitan servicios técnicos rápidos y confiables para el mantenimiento o mejora de sus viviendas.</p>
+        <p><strong>Proveedores:</strong> Profesionales independientes y pequeños negocios locales que buscan digitalizar su oferta de forma segura, aumentar su visibilidad y gestionar a sus clientes de manera formal.</p>
+        
+        <h2>Tecnologías Utilizadas</h2>
+        <table class="tech-table">
+            <tr>
+                <th>Frontend</th>
+                <td>Next.js 16, React 19, TailwindCSS</td>
+            </tr>
+            <tr>
+                <th>Backend</th>
+                <td>Monolito Modular con NestJS 11</td>
+            </tr>
+            <tr>
+                <th>Base de Datos</th>
+                <td>PostgreSQL 16, Prisma ORM, Redis</td>
+            </tr>
+            <tr>
+                <th>Tiempo Real</th>
+                <td>WebSockets / Socket.IO</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- PÁGINA 3: Ficha Ejecutiva - Parte 2 -->
+    <div class="page">
+        <div class="header">
+            <strong>Proyecto:</strong> ServiLocal 2026
+        </div>
+        
+        <h2>Estado Actual</h2>
+        <p>El sistema se encuentra en un estado de <strong>MVP Funcional / Prototipo Avanzado</strong>. Cuenta con módulos completos y estables de autenticación, chat en tiempo real, gestión de solicitudes de servicio y paneles especializados y diferenciados (cliente, proveedor, administrador). Además, el núcleo del sistema ha sido rigurosamente probado mediante testing E2E automatizado utilizando <strong>Playwright</strong>.</p>
+        
+        <div class="screenshot-container">
+            <img src="C:/Proyectos2026/ServiLocal2026/guias_sistema/figura_proveedores.png" class="screenshot" alt="Captura del Sistema - Proveedores">
+        </div>
+
+        <h2>Innovación Propuesta</h2>
+        <ul>
+            <li><strong>Trust Score (Puntaje de Confianza):</strong> Algoritmo automatizado que otorga o resta puntos en tiempo real según el comportamiento del usuario dentro del ecosistema. Además, el sistema penaliza la inactividad de forma autónoma mediante tareas cron, garantizando perfiles confiables y de calidad.</li>
+            <li><strong>Arquitectura Modular Escalable:</strong> El sistema fue estructurado utilizando un diseño modular avanzado, lo que permite que en el futuro el monolito se descomponga fácilmente en microservicios a medida que la carga y la base de usuarios aumenten.</li>
+        </ul>
+        
+        <!-- Updated HTML from User -->
+        <h2 style="color: #2980b9; margin-top: 30px; text-align: center; font-size: 16px; border: none;">Accesos del Sistema</h2>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 40px; margin-top: 20px; background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+            <div style="text-align: left;">
+                <p style="margin: 0; font-size: 14px; color: #7f8c8d;"><strong>URL Oficial del Sistema:</strong></p>
+                <a href="https://servi-local2026-web.vercel.app/" style="color: #2980b9; font-size: 16px; font-weight: bold; text-decoration: none;">https://servi-local2026-web.vercel.app/</a>
+            </div>
+            <div>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://servi-local2026-web.vercel.app/" alt="QR ServiLocal 2026" width="100" height="100" style="border: 2px solid #2980b9; border-radius: 8px; padding: 4px; background-color: white;" />
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

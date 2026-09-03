@@ -9,3 +9,9 @@ coverage
 .DS_Store
 *.log
 ServiLocal2026.rar
+
+# Entorno virtual de Python (venv) y binarios
+Include/
+Lib/
+scripts/*.exe
+scripts/

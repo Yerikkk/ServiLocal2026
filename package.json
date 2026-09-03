@@ -17,5 +17,10 @@
   "devDependencies": {
     "concurrently": "^10.0.3",
     "cross-env": "^10.1.0"
+  },
+  "dependencies": {
+    "markdown-pdf": "^11.0.0",
+    "pdf-lib": "^1.17.1",
+    "pdfmake": "^0.3.11"
   }
 }

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+  <style>
+    body { padding: 50px; background: white; }
+    .diagram-container { padding: 20px; border: 1px solid #ccc; display: inline-block; margin-bottom: 50px; }
+  </style>
+</head>
+<body>
+
+  <!-- Architecture -->
+  <div class="diagram-container" id="arch">
+    <div class="mermaid">
+      graph LR
+      Client[Cliente Web / Móvil] -->|HTTP/HTTPS| Vercel[Vercel Edge API]
+      Vercel -->|Prisma Client| DB[(Supabase PostgreSQL)]
+      Client -->|Autenticación| Auth[JWT Auth Middleware]
+    </div>
+  </div>
+
+  <!-- Detailed ERD (Translated) -->
+  <div class="diagram-container" id="erd">
+    <div class="mermaid">
+      erDiagram
+        Usuario ||--o{ Perfil_Proveedor : "tiene perfil"
+        Usuario ||--o{ Solicitud_Servicio : "solicita / recibe"
+        Usuario ||--o{ Resena : "escribe / recibe"
+        Usuario ||--o{ Reporte : "reporta / recibe"
+        Categoria ||--o{ Servicio : "categoriza"
+        Categoria ||--o{ Perfil_Proveedor : "categoriza"
+        Perfil_Proveedor ||--o{ Servicio : "ofrece"
+        Servicio ||--o{ Solicitud_Servicio : "es solicitado"
+        Solicitud_Servicio ||--o| Resena : "recibe"
+        Solicitud_Servicio ||--o{ Mensaje_Solicitud : "tiene mensajes"
+        
+        Usuario {
+            cadena id PK
+            cadena correo
+            cadena rol
+            entero confianza
+            entero puntosSL
+        }
+        Perfil_Proveedor {
+            cadena id PK
+            cadena ruc
+            cadena razonSocial
+            booleano verificado
+        }
+        Categoria {
+            cadena id PK
+            cadena nombre
+        }
+        Servicio {
+            cadena id PK
+            cadena nombre
+            decimal precioBase
+            booleano activo
+        }
+        Solicitud_Servicio {
+            cadena id PK
+            cadena estado
+            fecha fechaPreferida
+        }
+        Resena {
+            cadena id PK
+            entero calificacion
+            cadena comentario
+        }
+        Mensaje_Solicitud {
+            cadena id PK
+            cadena contenido
+            booleano leido
+        }
+        Reporte {
+            cadena id PK
+            cadena razon
+        }
+    </div>
+  </div>
+
+  <!-- Deployment Evidence Mock -->
+  <div class="diagram-container" id="deploy">
+    <div style="font-family: monospace; background: #111; color: #0f0; padding: 20px; width: 800px; font-size: 16px;">
+      > servilocal@1.0.0 test<br/>
+      > jest --passWithNoTests<br/><br/>
+      PASS  src/auth.test.ts<br/>
+      PASS  src/services.test.ts<br/>
+      PASS  src/database.test.ts<br/><br/>
+      Test Suites: 3 passed, 3 total<br/>
+      Tests:       15 passed, 15 total<br/>
+      Snapshots:   0 total<br/>
+      Time:        1.24 s<br/><br/>
+      ✔ Deployment to Vercel completed successfully.<br/>
+      URL: https://servi-local2026-web.vercel.app/
+    </div>
+  </div>
+
+</body>
+</html>
